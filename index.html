@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Inventory - Newbiggin Community</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c5f2d;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .search-filter {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-filter input,
+        .search-filter select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-filter input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-filter select {
+            min-width: 150px;
+        }
+
+        .stats {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            font-size: 14px;
+            color: #2c5f2d;
+        }
+
+        .stat-item strong {
+            font-size: 18px;
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead {
+            background: #2c5f2d;
+            color: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background: #234a24;
+        }
+
+        tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-flower {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge-herb {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-vegetable {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .badge-other {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .photo-info {
+            font-size: 12px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 Plant Inventory</h1>
+        <p class="subtitle">Newbiggin Community Garden Collection</p>
+
+        <div class="stats">
+            <div class="stat-item">
+                <strong id="totalCount">72</strong>
+                Total Plants
+            </div>
+            <div class="stat-item">
+                <strong id="flowerCount">11</strong>
+                Flowers
+            </div>
+            <div class="stat-item">
+                <strong id="herbCount">1</strong>
+                Herbs
+            </div>
+            <div class="stat-item">
+                <strong id="otherCount">60</strong>
+                Other
+            </div>
+        </div>
+
+        <div class="search-filter">
+            <input type="text" id="searchInput" placeholder="Search by plant name, variety, or notes...">
+            <select id="typeFilter">
+                <option value="">All Types</option>
+                <option value="Flower">Flower</option>
+                <option value="Herb">Herb</option>
+                <option value="">Other/Unspecified</option>
+            </select>
+        </div>
+
+        <table id="plantTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Photo File</th>
+                    <th onclick="sortTable(1)">Plant Name</th>
+                    <th onclick="sortTable(2)">Variety</th>
+                    <th onclick="sortTable(3)">Type</th>
+                    <th onclick="sortTable(4)">Notes</th>
+                </tr>
+            </thead>
+            <tbody id="plantTableBody">
+            </tbody>
+        </table>
+        <div id="noResults" class="no-results" style="display: none;">
+            No plants found matching your search criteria.
+        </div>
+    </div>
+
+    <script>
+        const plants = [
+            {"photoFile": "plant01.jpg", "plantName": "Geranium Border Supreme", "variety": "F2 Hybrid", "type": "Flower", "notes": ""},
+            {"photoFile": "plant02.jpg", "plantName": "Geranium Black Velvet", "variety": "Mixed", "type": "Flower", "notes": ""},
+            {"photoFile": "plant03.jpg", "plantName": "Lavender Stoechas", "variety": "Bandera Purple", "type": "Herb", "notes": ""},
+            {"photoFile": "plant04.jpg", "plantName": "Sweet Pea", "variety": "Heirloom Mixed", "type": "Flower", "notes": ""},
+            {"photoFile": "plant05.jpg", "plantName": "Sweet Pea", "variety": "Flying the Flag", "type": "Flower", "notes": ""},
+            {"photoFile": "plant06.jpg", "plantName": "Viola Tasty", "variety": "Mixed F1", "type": "Flower", "notes": "Edible"},
+            {"photoFile": "plant07.jpg", "plantName": "Foxglove", "variety": "Cub", "type": "Flower", "notes": ""},
+            {"photoFile": "plant08.jpg", "plantName": "Dianthus", "variety": "Kaleidoscope Mixed", "type": "Flower", "notes": ""},
+            {"photoFile": "plant09.jpg", "plantName": "Begonia", "variety": "Emperor", "type": "Flower", "notes": ""},
+            {"photoFile": "plant10.jpg", "plantName": "Begonia Semperflorien", "variety": "Fairyland Mix", "type": "Flower", "notes": ""},
+            {"photoFile": "plant11.jpg", "plantName": "Begonia Non Stop", "variety": "Mocca Orange", "type": "Flower", "notes": ""},
+            {"photoFile": "plant12.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant13.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant14.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant15.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant16.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant17.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant18.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant19.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant20.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant21.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant22.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant23.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant24.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant25.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant26.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant27.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant28.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant29.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant30.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant31.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant32.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant33.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant34.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant35.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant36.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant37.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant38.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant39.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant40.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant41.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant42.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant43.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant44.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant45.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant46.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant47.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant48.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant49.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant50.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant51.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant52.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant53.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant54.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant55.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant56.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant57.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant58.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant59.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant60.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant61.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant62.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant63.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant64.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant65.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant66.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant67.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant68.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant69.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant70.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant71.jpg", "plantName": "", "variety": "", "type": "", "notes": ""},
+            {"photoFile": "plant72.jpg", "plantName": "", "variety": "", "type": "", "notes": ""}
+        ];
+
+        let currentSort = { column: -1, ascending: true };
+
+        function getBadgeClass(type) {
+            if (!type) return 'badge-other';
+            const typeMap = {
+                'Flower': 'badge-flower',
+                'Herb': 'badge-herb',
+                'Vegetable': 'badge-vegetable'
+            };
+            return typeMap[type] || 'badge-other';
+        }
+
+        function renderTable(plantsToRender) {
+            const tbody = document.getElementById('plantTableBody');
+            const noResults = document.getElementById('noResults');
+            
+            if (plantsToRender.length === 0) {
+                tbody.innerHTML = '';
+                noResults.style.display = 'block';
+                return;
+            }
+
+            noResults.style.display = 'none';
+            tbody.innerHTML = plantsToRender.map(plant => `
+                <tr>
+                    <td><span class="photo-info">${plant.photoFile}</span></td>
+                    <td>${plant.plantName}</td>
+                    <td>${plant.variety}</td>
+                    <td>${plant.type ? `<span class="badge ${getBadgeClass(plant.type)}">${plant.type}</span>` : ''}</td>
+                    <td>${plant.notes}</td>
+                </tr>
+            `).join('');
+        }
+
+        function filterPlants() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+
+            const filtered = plants.filter(plant => {
+                const matchesSearch = !searchTerm || 
+                    plant.plantName.toLowerCase().includes(searchTerm) ||
+                    plant.variety.toLowerCase().includes(searchTerm) ||
+                    plant.notes.toLowerCase().includes(searchTerm);
+                
+                const matchesType = !typeFilter || plant.type === typeFilter;
+
+                return matchesSearch && matchesType;
+            });
+
+            renderTable(filtered);
+        }
+
+        function sortTable(columnIndex) {
+            const columns = ['photoFile', 'plantName', 'variety', 'type', 'notes'];
+            const column = columns[columnIndex];
+
+            if (currentSort.column === columnIndex) {
+                currentSort.ascending = !currentSort.ascending;
+            } else {
+                currentSort.column = columnIndex;
+                currentSort.ascending = true;
+            }
+
+            const sorted = [...plants].sort((a, b) => {
+                const aVal = a[column].toLowerCase();
+                const bVal = b[column].toLowerCase();
+                
+                if (aVal < bVal) return currentSort.ascending ? -1 : 1;
+                if (aVal > bVal) return currentSort.ascending ? 1 : -1;
+                return 0;
+            });
+
+            renderTable(sorted);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', filterPlants);
+        document.getElementById('typeFilter').addEventListener('change', filterPlants);
+
+        // Initial render
+        renderTable(plants);
+    </script>
+</body>
+</html>
