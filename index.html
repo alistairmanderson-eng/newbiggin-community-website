@@ -583,93 +583,79 @@
             </div>
         </div>
 
-        <!-- Events Section -->
-        <div id="events" class="content-section">
-           <div class="card event-card">
-    <div class="event-date">
-        <span class="day">21</span>
-        <span class="month">FEB</span>
-    </div>
+   <!-- Events Section -->
+<div id="events" class="content-section">
 
-    <h3 style="text-align:center; font-size:1.8rem; color:#fff; margin:0.5rem 0; font-weight:800;">
-    <h3 style="text-align:center; font-size:1.8rem; color:#fff; margin:0.5rem 0; font-weight:800;">
-   <h3 style="text-align:center; font-size:1.8rem; color:#fff; margin:0.5rem 0; font-weight:800;">
-   <h3 style="text-align:center; font-size:1.8rem; color:#fff; margin:0.5rem 0; font-weight:800;">
-   <h3 style="text-align:center; font-size:1.8rem; color:#fff; margin:0.5rem 0; font-weight:800;">
-   <h3 style="text-align:center; font-size:1.8rem; color:#fff; margin:0.5rem 0; font-weight:800;">
-   <div class="card event-card">
-    <div class="event-date">
-        <span class="day">21</span>
-        <span class="month">FEB</span>
-    </div>
-
-   <h3 style="text-align:center; font-size:1.8rem; color:#fff; margin:0.5rem 0; font-weight:800;">
-    🍝 Italian Evening at Elizabethan Hall
-</h3>
-
-
-    <p style="text-align:center; font-size:1.15rem; color:rgba(255,255,255,0.95); margin:0 0 1rem 0;">
-        Join us for a wonderful evening of Italian cuisine, music, and community fellowship.
-    </p>
-
-    <a href="italian_night.jpg" target="_blank" rel="noopener">
-        <img
-            src="italian_night.jpg"
-            alt="Italian Evening poster"
-            style="width: 100%; max-width: 380px; height: auto; margin: 10px auto; display: block; border-radius: 10px;"
-            loading="lazy"
-        >
-    </a>
-
-    <button class="btn btn-secondary" onclick="showBookingForm('Italian Evening')">
-        Book Tickets
-    </button>
-</div>
-
-
-
-            <div class="card">
-                <h3>📅 Community Garden Open Day</h3>
-                <p><strong>March 14, 2026</strong> • 10:00 AM - 4:00 PM</p>
-                <p>Come and see the progress on our new community garden. Tours, planting demonstrations, and refreshments available.</p>
-                <button class="btn" onclick="showBookingForm('Garden Open Day')">Register Interest</button>
-            </div>
-
-            <div id="bookingFormCard" class="card" style="display: none;">
-                <h3>📝 Event Booking</h3>
-                <div id="bookingAlert" class="alert alert-success"></div>
-                <form id="bookingForm" name="event-booking" netlify>
-                    <input type="hidden" name="form-name" value="event-booking">
-                    <div class="form-group">
-                        <label>Event</label>
-                        <input type="text" id="bookingEvent" name="event" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Your Name *</label>
-                        <input type="text" id="bookingName" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Email Address *</label>
-                        <input type="email" id="bookingEmail" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Phone Number</label>
-                        <input type="tel" id="bookingPhone" name="phone">
-                    </div>
-                    <div class="form-group">
-                        <label>Number of Attendees</label>
-                        <input type="number" id="bookingAttendees" name="attendees" min="1" value="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Special Requirements</label>
-                        <textarea id="bookingNotes" name="notes" placeholder="Dietary requirements, accessibility needs, etc."></textarea>
-                    </div>
-                    <button type="submit" class="btn">Submit Booking</button>
-                    <button type="button" class="btn btn-secondary" onclick="hideBookingForm()">Cancel</button>
-                </form>
-            </div>
+    <div class="card event-card">
+        <div class="event-date">
+            <span class="day">21</span>
+            <span class="month">FEB</span>
         </div>
 
+        <h3 style="text-align:center; font-size:1.8rem; color:#fff; margin:0.5rem 0; font-weight:800;">
+            🍝 Italian Evening at Elizabethan Hall
+        </h3>
+
+        <p style="text-align:center; font-size:1.15rem; color:rgba(255,255,255,0.95); margin:0 0 1rem 0;">
+            Join us for a wonderful evening of Italian cuisine, music, and community fellowship.
+        </p>
+
+        <a href="italian_night.jpg" target="_blank" rel="noopener">
+            <img
+                src="italian_night.jpg"
+                alt="Italian Evening poster"
+                style="width: 100%; max-width: 380px; height: auto; margin: 10px auto; display: block; border-radius: 10px;"
+                loading="lazy"
+            >
+        </a>
+
+        <button class="btn btn-secondary" onclick="showBookingForm('Italian Evening')">
+            Book Tickets
+        </button>
+    </div>
+
+    <div class="card">
+        <h3>📅 Community Garden Open Day</h3>
+        <p><strong>March 14, 2026</strong> • 10:00 AM - 4:00 PM</p>
+        <p>Come and see the progress on our new community garden. Tours, planting demonstrations, and refreshments available.</p>
+        <button class="btn" onclick="showBookingForm('Garden Open Day')">Register Interest</button>
+    </div>
+
+    <div id="bookingFormCard" class="card" style="display: none;">
+        <h3>📝 Event Booking</h3>
+        <div id="bookingAlert" class="alert alert-success"></div>
+        <form id="bookingForm" name="event-booking" netlify>
+            <input type="hidden" name="form-name" value="event-booking">
+            <div class="form-group">
+                <label>Event</label>
+                <input type="text" id="bookingEvent" name="event" readonly>
+            </div>
+            <div class="form-group">
+                <label>Your Name *</label>
+                <input type="text" id="bookingName" name="name" required>
+            </div>
+            <div class="form-group">
+                <label>Email Address *</label>
+                <input type="email" id="bookingEmail" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="bookingPhone" name="phone">
+            </div>
+            <div class="form-group">
+                <label>Number of Attendees</label>
+                <input type="number" id="bookingAttendees" name="attendees" min="1" value="1">
+            </div>
+            <div class="form-group">
+                <label>Special Requirements</label>
+                <textarea id="bookingNotes" name="notes" placeholder="Dietary requirements, accessibility needs, etc."></textarea>
+            </div>
+            <button type="submit" class="btn">Submit Booking</button>
+            <button type="button" class="btn btn-secondary" onclick="hideBookingForm()">Cancel</button>
+        </form>
+    </div>
+
+</div>
 
         <!-- Timetable Section -->
         <div id="timetable" class="content-section">
