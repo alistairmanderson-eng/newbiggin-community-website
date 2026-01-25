@@ -1630,59 +1630,27 @@
             }
         }
 
-        function showTab(tabName) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Remove active class from all buttons
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Show selected section
-            document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to clicked button
-            event.target.classList.add('active');
-            
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+       <script>
+  function showTab(tabName) {
+    // Hide all sections
+    document.querySelectorAll('.content-section').forEach(section => {
+      section.classList.remove('active');
+    });
 
-    
-        // Booking Form Functions
-        function showBookingForm(eventName) {
-            document.getElementById('bookingEvent').value = eventName;
-            document.getElementById('bookingFormCard').style.display = 'block';
-            document.getElementById('bookingFormCard').scrollIntoView({ behavior: 'smooth' });
-        }
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
 
-        function hideBookingForm() {
-            document.getElementById('bookingFormCard').style.display = 'none';
-            document.getElementById('bookingForm').reset();
-        }
+    // Show selected section
+    const section = document.getElementById(tabName);
+    if (section) section.classList.add('active');
 
-        // Form Submissions - Let Netlify handle these
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
-            console.log('Booking form submitting to Netlify');
-        });
+    // Set the matching tab button active (no event needed)
+    const btn = document.querySelector(`.tab-btn[onclick="showTab('${tabName}')"]`);
+    if (btn) btn.classList.add('active');
 
-        document.getElementById('reportForm').addEventListener('submit', function(e) {
-            console.log('Issue report submitting to Netlify');
-        });
-
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            console.log('Contact form submitting to Netlify');
-        });
-
-        // Gallery item click handlers
-        document.querySelectorAll('.gallery-item').forEach(item => {
-            item.addEventListener('click', function() {
-                alert('Photo viewer would open here. In a live version, this would show full-size images with details.');
-            });
-        });
-    </script>
-</body>
-</html>
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
