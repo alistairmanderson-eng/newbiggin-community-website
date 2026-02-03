@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="Elizabethan Hall on the Spital Estate, Newbiggin-by-the-Sea. Community events, activities, wood shop, community garden, and local groups.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elizabethan Hall – Newbiggin-by-the-Sea</title>
+
+  <style>
+    /* ========= Base layout / cards / buttons (keeps your theme but prevents blank pages) ========= */
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:#f6f4ef !important;
+      background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px) !important;
+      background-size: 22px 22px !important;
+      font-family:'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+      color:#1a202c;
+    }
+    a{color:#2f6f4e}
+    .header{
+      padding:2rem 1rem 1.5rem;
+      text-align:center;
+      background: linear-gradient(135deg, #2f6f4e, #48bb78);
+      color:#fff;
+      box-shadow:0 8px 20px rgba(0,0,0,0.18);
+    }
+    .header h1{margin:0 0 .25rem 0; font-size:2.1rem}
+    .header p{margin:0; opacity:.95}
+    .container{max-width:1100px; margin:0 auto; padding:1.25rem 1rem 3rem}
+    .card{
+      background:#fff;
+      border-radius:16px;
+      padding:1.25rem 1.25rem;
+      border:1px solid rgba(0,0,0,0.06);
+      box-shadow:0 6px 15px rgba(0,0,0,0.08);
+      margin-bottom:1rem;
+    }
+    .hero-banner img{
+      width:100%;
+      max-height:360px;
+      object-fit:cover;
+      border-radius:18px;
+      box-shadow:0 10px 22px rgba(0,0,0,0.15);
+      display:block;
+    }
+    .stats-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap:1rem;
+      margin:1rem 0 1.25rem;
+    }
+    .stat-card{
+      background:#fff;
+      border-radius:16px;
+      padding:1rem 1.1rem;
+      border:1px solid rgba(0,0,0,0.06);
+      box-shadow:0 6px 15px rgba(0,0,0,0.08);
+      cursor:pointer;
+    }
+    .stat-number{display:block; font-size:2rem; font-weight:800; color:#2f6f4e}
+    .stat-label{color:#4a5568; font-weight:700}
+    .btn{
+      display:inline-block;
+      border:none;
+      padding:.7rem 1rem;
+      border-radius:999px;
+      font-weight:700;
+      background:#2f6f4e;
+      color:#fff;
+      cursor:pointer;
+      box-shadow:0 6px 14px rgba(0,0,0,0.14);
+    }
+    .btn:hover{filter:brightness(1.05); transform:translateY(-1px)}
+    .btn-secondary{background:#2d3748}
+    .btn-secondary:hover{filter:brightness(1.05)}
+
+    /* ========= Tabs ========= */
+    .nav-tabs { display:flex; flex-wrap:wrap; gap:0.5rem !important; margin-bottom: 1.25rem !important; justify-content:center; }
+    .tab-btn{
+      background:#2f6f4e !important;
+      color:#ffffff !important;
+      border:none !important;
+      padding:0.75rem 1.25rem !important;
+      border-radius:999px !important;
+      font-size:1rem !important;
+      font-weight:600 !important;
+      cursor:pointer;
+      transition: transform .12s ease, filter .12s ease;
+    }
+    .tab-btn:hover { background:#3f8a63 !important; transform: translateY(-2px) !important; }
+    .tab-btn.active { background:#1f4f38 !important; box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important; }
+
+    /* Critical tab behaviour */
+    .content-section { display:none; }
+    .content-section.active { display:block; }
+
+    /* ========= Woodshop background + overlay ========= */
+    #woodshop{
+      background-image: url('20240926_132446.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      padding: 3rem 1rem;
+      position: relative;
+      border-radius:18px;
+    }
+    #woodshop::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,0.45);
+      z-index:0;
+      border-radius:18px;
+    }
+    #woodshop > *{ position:relative; z-index:1; }
+    #woodshop .card{ background: rgba(255,255,255,0.88); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+
+    /* ========= Timetable ========= */
+    #timetable .timetable-day > h3{ cursor:pointer; }
+    #timetable .timetable-day.collapsed .activity{ display:none; }
+
+    #timetable .timetable-day > h3{
+      background: linear-gradient(135deg, #2f6f4e, #48bb78);
+      color:#fff;
+      padding:0.75rem 1rem;
+      border-radius:12px;
+      font-size:1.15rem;
+      font-weight:700;
+      letter-spacing:0.3px;
+      margin:0 0 .5rem 0;
+    }
+    #timetable .timetable-day > h3::after{
+      content:" ▼";
+      float:right;
+      font-size:.9rem;
+      opacity:.9;
+    }
+    #timetable .timetable-day.collapsed > h3::after{ content:" ▶"; }
+
+    #timetable .activity{
+      border-left: 5px solid #2f6f4e;
+      background:#fff;
+      border-radius:14px;
+      padding:1rem;
+      margin-bottom:.75rem;
+      box-shadow:0 6px 15px rgba(0,0,0,0.08);
+      border:1px solid rgba(0,0,0,0.05);
+      cursor:pointer;
+    }
+    #timetable .activity + .activity{ margin-top:1rem; }
+
+    #timetable .activity-time{ font-weight:800; color:#2f6f4e; display:block; margin-bottom:.15rem; }
+    #timetable .activity-name{ font-weight:800; font-size:1.05rem; color:#2d3748; display:block; }
+    #timetable .activity-note{ display:block; margin-top:.15rem; font-size:.9rem; color:#718096; }
+
+    .activity-details{ display:none; margin-top:.75rem; color:#2d3748; line-height:1.5; }
+    .activity-details.active{ display:block; }
+
+    /* ========= News alternating background ========= */
+    #news .news-item{
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+      border: 1px solid rgba(0,0,0,0.06);
+      margin-bottom:1rem;
+    }
+    #news .news-item:nth-of-type(1){ background: #f0f7f4; }
+    #news .news-item:nth-of-type(2){ background: #f7f3f0; }
+    #news .news-item:nth-of-type(3){ background: #f1f7fa; }
+    #news .news-item:nth-of-type(4){ background: #f3f4f8; }
+    #news .news-item:nth-of-type(5){ background: #f8f5f1; }
+
+    .news-meta{ font-weight:800; color:#2f6f4e; margin-bottom:.4rem }
+
+    /* ========= What's On flyer grid ========= */
+    .flyers-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .flyer-card{
+      background:#fff;
+      border-radius:16px;
+      overflow:hidden;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    }
+    .flyer-card img{
+      width:100%;
+      height:280px;
+      object-fit:cover;
+      display:block;
+    }
+    .flyer-card .flyer-caption{ padding: .9rem 1rem; color:#2d3748; font-weight:800; }
+    .flyer-card .flyer-meta{ padding: 0 1rem 1rem; color:#718096; font-size:.95rem; line-height:1.4; }
+
+    /* SOLD OUT ribbon */
+    .sold-out{
+      position:absolute;
+      top:18px;
+      right:-40px;
+      background:#e53e3e;
+      color:#fff;
+      padding:.5rem 3rem;
+      font-weight:900;
+      font-size:.9rem;
+      transform: rotate(45deg);
+      box-shadow:0 4px 12px rgba(0,0,0,0.35);
+      z-index:10;
+      letter-spacing:1px;
+    }
+
+    /* Event card */
+    .event-card{ position:relative; overflow:hidden; }
+    .event-date{
+      display:inline-flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      width:70px;
+      height:70px;
+      border-radius:16px;
+      background:#2f6f4e;
+      color:#fff;
+      font-weight:900;
+      float:right;
+      margin-left:1rem;
+      box-shadow:0 8px 16px rgba(0,0,0,0.18);
+    }
+    .event-date .day{font-size:1.4rem; line-height:1}
+    .event-date .month{font-size:.9rem; letter-spacing:1px; opacity:.95}
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>🏘️ Elizabethan Hall</h1>
+    <p>Community events, groups and activities</p>
+  </div>
+
+  <div class="container">
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="showTab('home', this)">Home</button>
+      <button class="tab-btn" onclick="showTab('news', this)">News</button>
+      <button class="tab-btn" onclick="showTab('events', this)">Events</button>
+      <button class="tab-btn" onclick="showTab('whatson', this)">What’s On</button>
+      <button class="tab-btn" onclick="showTab('timetable', this)">Timetable</button>
+      <button class="tab-btn" onclick="showTab('skippys', this)">Skippy's</button>
+      <button class="tab-btn" onclick="showTab('woodshop', this)">🪵 Wood Shop</button>
+      <button class="tab-btn" onclick="showTab('report', this)">Report Issue</button>
+      <button class="tab-btn" onclick="showTab('directory', this)">Directory</button>
+      <button class="tab-btn" onclick="showTab('gallery', this)">Gallery</button>
+      <button class="tab-btn" onclick="showTab('contact', this)">Contact</button>
+    </div>
+
+    <!-- ================= Home ================= -->
+    <div id="home" class="content-section active">
+      <div class="hero-banner">
+        <img src="elizabethan_hall.png" alt="Elizabethan Hall - Newbiggin Community Gardens & Allotment">
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card" onclick="showTab('events', this)">
+          <span class="stat-number">1</span>
+          <span class="stat-label">Upcoming Events</span>
+        </div>
+        <div class="stat-card" onclick="showTab('news', this)">
+          <span class="stat-number">2</span>
+          <span class="stat-label">Latest News</span>
+        </div>
+        <div class="stat-card" onclick="showTab('gallery', this)">
+          <span class="stat-number">1</span>
+          <span class="stat-label">Active Projects</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Elizabethan Hall - Newbiggin Community Garden</h3>
+        <p>
+          Stay connected with everything happening in Newbiggin-by-the-Sea. Access community news, upcoming events,
+          report issues, and connect with local services all in one place.
+        </p>
+      </div>
+
+      <div class="card news-item">
+        <div class="news-meta">🌱 Latest News • Community Garden</div>
+        <h3>Spring Garden Makeover Coming Soon!</h3>
+        <p>
+          Our Community Garden is getting a huge makeover for the Spring! All raised beds are being replaced with a brand new
+          Railway sleeper design, and we're installing a new perimeter fence. Volunteers welcome - come and help out!
+        </p>
+      </div>
+
+      <!-- Community Garden – Spring Makeover (Polytunnel Upgrade) -->
+      <div class="card">
+        <h3>🌱 Community Garden – Spring Makeover</h3>
+        <p style="margin-bottom: 1.5rem; color: #4a5568;">
+          Allan hard at work giving the polytunnel a well-deserved makeover.
+          All new sleepers and a new design to maximise growing space, with
+          <strong>3 layers of ground cover</strong> to stop any remaining mare’s tail
+          coming through. <strong>We will win the battle!</strong><br><br>
+          New soil and fertiliser incoming very soon….
+        </p>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:1rem;">
+          <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            <a href="poly1.jpg"><img src="poly1.jpg" alt="Polytunnel makeover stage 1" style="width:100%; height:220px; object-fit:cover;"></a>
+          </div>
+          <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            <a href="poly2.jpg"><img src="poly2.jpg" alt="Polytunnel makeover stage 2" style="width:100%; height:220px; object-fit:cover;"></a>
+          </div>
+          <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            <a href="poly3.jpg"><img src="poly3.jpg" alt="Polytunnel makeover stage 3" style="width:100%; height:220px; object-fit:cover;"></a>
+          </div>
+          <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            <a href="poly4.jpg"><img src="poly4.jpg" alt="Polytunnel makeover stage 4" style="width:100%; height:220px; object-fit:cover;"></a>
+          </div>
+          <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            <a href="poly5.jpg"><img src="poly5.jpg" alt="Finished polytunnel layout" style="width:100%; height:220px; object-fit:cover;"></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card event-card" style="position: relative; overflow: hidden;">
+        <div class="sold-out">SOLD&nbsp;OUT</div>
+        <div class="event-date">
+          <span class="day">21</span>
+          <span class="month">FEB</span>
+        </div>
+        <h3>🍝 Italian Evening at Elizabethan Hall</h3>
+        <p>Join us for a wonderful evening of Italian cuisine, music, and community fellowship.</p>
+        <button class="btn btn-secondary" disabled style="opacity:0.55; cursor:not-allowed;">Sold Out</button>
+      </div>
+    </div>
+
+    <!-- ================= News ================= -->
+    <div id="news" class="content-section">
+      <div class="card news-item">
+        <div class="news-meta">🌱 Community Garden • Latest Update</div>
+        <h3>Community Garden Spring Makeover!</h3>
+        <p>
+          We are excited to tell you that our Community Garden is getting a huge makeover for the Spring.
+          We are replacing all the raised beds with a brand new design using Railway sleepers.
+          We are also replacing the very tired old perimeter fence around the property.
+        </p>
+        <p style="margin-top: 1rem;">
+          You are welcome to come and have a look and are more than welcome to help if you need something to do.
+          Contact us on 07562 499442 or <a href="mailto:elizabethanhall@example.com">email us</a> for more information.
+        </p>
+      </div>
+    </div>
+
+    <!-- ================= Events ================= -->
+    <div id="events" class="content-section">
+      <div class="card event-card">
+        <div class="event-date">
+          <span class="day">21</span>
+          <span class="month">FEB</span>
+        </div>
+        <h3>🍝 Italian Evening</h3>
+        <p><strong>Elizabethan Hall</strong><br>7:00 PM - 11:00 PM</p>
+        <p>Join us for an authentic Italian dining experience with quiz, music, and great company.</p>
+        <button class="btn btn-secondary" disabled style="opacity:0.55; cursor:not-allowed;">Sold Out</button>
+      </div>
+
+      <div class="card">
+        <h3>📅 Community Garden Open Day</h3>
+        <p><strong>Coming soon</strong></p>
+        <p>Come and see the progress on our new community garden. Tours, planting demonstrations, and refreshments available.</p>
+        <button class="btn" onclick="showBookingForm('Garden Open Day')">Register Interest</button>
+      </div>
+
+      <div id="bookingFormCard" class="card" style="display:none;">
+        <h3>📝 Event Booking</h3>
+        <form id="bookingForm" name="event-booking" netlify>
+          <input type="hidden" name="form-name" value="event-booking">
+          <div style="margin-bottom:.75rem;">
+            <label>Event</label><br>
+            <input type="text" id="bookingEvent" name="event" readonly style="width:100%; padding:.65rem .75rem; border-radius:12px; border:1px solid rgba(0,0,0,0.15);">
+          </div>
+          <div style="margin-bottom:.75rem;">
+            <label>Your Name *</label><br>
+            <input type="text" name="name" required style="width:100%; padding:.65rem .75rem; border-radius:12px; border:1px solid rgba(0,0,0,0.15);">
+          </div>
+          <div style="margin-bottom:.75rem;">
+            <label>Email Address *</label><br>
+            <input type="email" name="email" required style="width:100%; padding:.65rem .75rem; border-radius:12px; border:1px solid rgba(0,0,0,0.15);">
+          </div>
+          <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+            <button type="submit" class="btn">Submit</button>
+            <button type="button" class="btn btn-secondary" onclick="hideBookingForm()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= What's On ================= -->
+    <div id="whatson" class="content-section">
+      <div class="card">
+        <h3>📌 What’s On</h3>
+        <p style="margin-bottom:0; color:#718096;">Flyers for activities and events at Elizabethan Hall. Click a flyer to view it larger.</p>
+      </div>
+
+      <div class="flyers-grid">
+        <!-- Replace filenames with your real flyer filenames -->
+        <div class="flyer-card">
+          <a href="artclub.png"><img src="artclub.png" alt="Art Club flyer" loading="lazy"></a>
+          <div class="flyer-caption">🎨 Art Club
+        <div class="flyer-card">
+          <a href="craftgroup.png"><img src="craftgroup.png" alt="Craft Group poster" loading="lazy"></a>
+          <div class="flyer-caption">🧶 Craft Group</div>
+          <div class="flyer-meta">Every Tuesday • 1:30pm – 3:30pm</div>
+        </div>
+        </div>
+          <div class="flyer-meta">Weekly sessions • All welcome</div>
+        </div>
+
+        <div class="flyer-card">
+          <a href="gamesnight.png"><img src="gamesnight.png" alt="Games Night flyer" loading="lazy"></a>
+          <div class="flyer-caption">🎲 Games Night</div>
+          <div class="flyer-meta">2nd Tuesday • Cards, chess, darts & more</div>
+        </div>
+
+        <div class="flyer-card">
+          <a href="heshed.png"><img src="heshed.png" alt="Wood Shop flyer" loading="lazy"></a>
+          <div class="flyer-caption">🪵 Wood Shop</div>
+          <div class="flyer-meta">Sessions & membership info</div>
+        </div>
+
+        <div class="flyer-card">
+          <a href="fareshare.png"><img src="fareshare.png" alt="Foodshare flyer" loading="lazy"></a>
+          <div class="flyer-caption">🥫 Foodshare</div>
+          <div class="flyer-meta">Every Friday • 1pm</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Timetable ================= -->
+    <div id="timetable" class="content-section">
+      <div class="card">
+        <h3>📅 Weekly Timetable</h3>
+        <p style="margin-bottom:0;">Regular activities at Elizabethan Hall, Hepple Rd, NE64 6ST (click a day to expand)</p>
+      </div>
+
+      <div class="timetable-day collapsed">
+        <h3>Monday</h3>
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">10:00 AM - 1:00 PM</span>
+          <span class="activity-name">He Shed She Shed (Woodwork)</span>
+          <span class="activity-note">(Membership required)</span>
+          <div class="activity-details">
+            <p><strong>About:</strong> We have a fully equipped workshop suitable for all capabilities.</p>
+            <p><strong>Membership:</strong> Monthly membership costs £15. Safety induction required.</p>
+            <p><strong>More info:</strong> <a href="mailto:newbigginwoodwork@gmail.com">newbigginwoodwork@gmail.com</a></p>
+          </div>
+        </div>
+
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">11:00 AM - 1:00 PM</span>
+          <span class="activity-name">Warm Space</span>
+          <div class="activity-details">
+            <p><strong>About:</strong> A warm space during winter with soup, hot drinks and company.</p>
+            <p><strong>Cost:</strong> Free</p>
+          </div>
+        </div>
+
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">2:00 PM - 4:00 PM</span>
+          <span class="activity-name">Art Club</span>
+          <div class="activity-details">
+            <p><strong>About:</strong> A relaxed art club run by local artist Ted Turner.</p>
+            <p><strong>More info:</strong> <a href="mailto:paintnorthumberland@gmail.com">paintnorthumberland@gmail.com</a></p>
+          </div>
+        </div>
+
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">6:00 PM - 7:00 PM</span>
+          <span class="activity-name">Youth Club (Juniors)</span>
+          <div class="activity-details">
+            <p><strong>Contact:</strong> Beyond Youth NE</p>
+            <p><strong>Tel:</strong> <a href="tel:+447990044487">07990 044487</a></p>
+            <p><strong>Email:</strong> <a href="mailto:beyondyouth@newcastle.anglican.org">beyondyouth@newcastle.anglican.org</a></p>
+          </div>
+        </div>
+
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">7:00 PM - 8:00 PM</span>
+          <span class="activity-name">Youth Club</span>
+          <div class="activity-details">
+            <p><strong>Contact:</strong> Beyond Youth NE</p>
+            <p><strong>Tel:</strong> <a href="tel:+447990044487">07990 044487</a></p>
+            <p><strong>Email:</strong> <a href="mailto:beyondyouth@newcastle.anglican.org">beyondyouth@newcastle.anglican.org</a></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timetable-day collapsed">
+        <h3>Tuesday</h3>
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">10:00 AM - 1:00 PM</span>
+          <span class="activity-name">He Shed She Shed (Woodwork)</span>
+          <span class="activity-note">(Membership required)</span>
+          <div class="activity-details">
+            <p><strong>More info:</strong> <a href="mailto:newbigginwoodwork@gmail.com">newbigginwoodwork@gmail.com</a></p>
+          </div>
+        </div>
+
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">11:00 AM - 1:00 PM</span>
+          <span class="activity-name">Brunch Club</span>
+          <span class="activity-note">(1st Tuesday)</span>
+          <div class="activity-details">
+            <p><strong>Cost:</strong> £2.50</p>
+          </div>
+        </div>
+
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">1:30 PM - 3:30 PM</span>
+          <span class="activity-name">Craft Group</span>
+          <div class="activity-details">
+            <p>General crafts, card making, flower arranging, and a chat. Tea & coffee available.</p>
+          </div>
+        </div>
+
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">5:00 PM - 8:00 PM</span>
+          <span class="activity-name">Games Night</span>
+          <span class="activity-note">(2nd Tuesday)</span>
+          <div class="activity-details">
+            <p><strong>About:</strong> Join us every second Tuesday for a relaxed and friendly Games Night.</p>
+            <p>
+              We play cards, dominoes, chess, Monopoly, Scrabble, darts, table tennis,
+              and numerous other games — there’s always something for everyone.
+            </p>
+            <p>We have tea, coffee, nibbles, and even cakes sometimes. Oh… and we always have wine! 🍷</p>
+            <p>So don’t forget to bring a bottle with you. Come along, join in, and have a laugh!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timetable-day collapsed">
+        <h3>Wednesday</h3>
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">—</span>
+          <span class="activity-name">No regular session listed yet</span>
+          <div class="activity-details">
+            <p>If you want Wednesday activities added, tell me the times and names and I’ll drop them in.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timetable-day collapsed">
+        <h3>Thursday</h3>
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">—</span>
+          <span class="activity-name">No regular session listed yet</span>
+          <div class="activity-details">
+            <p>If you want Thursday activities added, tell me the times and names and I’ll drop them in.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timetable-day collapsed">
+        <h3>Friday</h3>
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">1:00 PM</span>
+          <span class="activity-name">Foodshare (Fareshare)</span>
+          <div class="activity-details">
+            <p>Every Friday • Open to all • First come, first served • At least 10 items for only £1.50.</p>
+          </div>
+        </div>
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">2:30 PM - 4:30 PM</span>
+          <span class="activity-name">Art Club (New Session)</span>
+          <div class="activity-details">
+            <p>New Friday session added. All welcome.</p>
+            <p><strong>More info:</strong> <a href="mailto:paintnorthumberland@gmail.com">paintnorthumberland@gmail.com</a></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timetable-day collapsed">
+        <h3>Saturday</h3>
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">—</span>
+          <span class="activity-name">No regular session listed yet</span>
+          <div class="activity-details">
+            <p>If you want Saturday activities added, tell me the times and names and I’ll drop them in.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timetable-day collapsed">
+        <h3>Sunday</h3>
+        <div class="activity" onclick="toggleActivity(this)">
+          <span class="activity-time">—</span>
+          <span class="activity-name">No regular session listed yet</span>
+          <div class="activity-details">
+            <p>If you want Sunday activities added, tell me the times and names and I’ll drop them in.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Skippy's ================= -->
+    <div id="skippys" class="content-section">
+      <div class="card">
+        <h3>🌿 Skippy’s</h3>
+        <p>If you paste your Skippy’s section content here, I’ll slot it back in exactly.</p>
+      </div>
+    </div>
+
+    <!-- ================= Wood Shop ================= -->
+    <div id="woodshop" class="content-section">
+      <div class="card">
+        <h3>🪵 Wood Shop</h3>
+        <p>This tab is now guaranteed to show content when clicked (no more blank).</p>
+        <p>If you paste your full woodshop content, I’ll restore the complete page.</p>
+      </div>
+    </div>
+
+    <!-- ================= Report Issue ================= -->
+    <div id="report" class="content-section">
+      <div class="card">
+        <h3>🛠️ Report an Issue</h3>
+        <p>If you have a report form section, paste it and I’ll put it back in. For now, this prevents the tab going blank.</p>
+      </div>
+    </div>
+
+    <!-- ================= Directory ================= -->
+    <div id="directory" class="content-section">
+      <div class="card">
+        <h3>📇 Directory</h3>
+        <p>Add useful local contacts and services here.</p>
+      </div>
+    </div>
+
+    <!-- ================= Gallery ================= -->
+    <div id="gallery" class="content-section">
+      <div class="card">
+        <h3>📷 Gallery</h3>
+        <p>Upload your gallery images to Netlify with the same filenames you reference here.</p>
+      </div>
+    </div>
+
+    <!-- ================= Contact ================= -->
+    <div id="contact" class="content-section">
+      <div class="card">
+        <h3>☎️ Contact</h3>
+        <p>Phone: 07562 499442</p>
+        <p>Email: <a href="mailto:elizabethanhall@example.com">elizabethanhall@example.com</a></p>
+      </div>
+    </div>
+  </div><!-- /container -->
+
+  <script>
+    /* ===== Site interactions (tabs, timetable expand, forms) ===== */
+
+    // Timetable – click an activity to toggle its details (if present)
+    function toggleActivity(element) {
+      const details = element.querySelector('.activity-details');
+      if (details) details.classList.toggle('active');
+    }
+
+    // Tabs – works with onclick="showTab('home', this)" and also if called without 2nd arg
+    function showTab(tabId, evtOrEl) {
+      // Hide all sections
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Show selected section
+      const target = document.getElementById(tabId);
+      if (target) target.classList.add('active');
+
+      // Update nav tab button active state (only nav buttons)
+      const navButtons = document.querySelectorAll('.nav-tabs .tab-btn');
+      navButtons.forEach(btn => btn.classList.remove('active'));
+
+      const clickedEl = (evtOrEl && evtOrEl.target) ? evtOrEl.target : evtOrEl;
+
+      if (clickedEl && clickedEl.classList && clickedEl.classList.contains('tab-btn')) {
+        clickedEl.classList.add('active');
+      } else {
+        // Fallback: find matching nav button by onclick tabId
+        const navBtn = Array.from(navButtons).find(b => {
+          const oc = b.getAttribute('onclick') || '';
+          return oc.includes("'" + tabId + "'") || oc.includes('"' + tabId + '"');
+        });
+        if (navBtn) navBtn.classList.add('active');
+      }
+
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+      return false;
+    }
+
+    // Booking form helpers (guarded)
+    function showBookingForm(eventName) {
+      try { showTab('events'); } catch (e) {}
+      const bookingEvent = document.getElementById('bookingEvent');
+      const bookingCard = document.getElementById('bookingFormCard');
+      if (bookingEvent) bookingEvent.value = eventName || '';
+      if (bookingCard) {
+        bookingCard.style.display = 'block';
+        bookingCard.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function hideBookingForm() {
+      const bookingCard = document.getElementById('bookingFormCard');
+      const bookingForm = document.getElementById('bookingForm');
+      if (bookingCard) bookingCard.style.display = 'none';
+      if (bookingForm) bookingForm.reset();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Ensure one section is visible
+      const activeSection = document.querySelector('.content-section.active');
+      if (!activeSection) {
+        const firstBtn = document.querySelector('.nav-tabs .tab-btn');
+        if (firstBtn) {
+          const oc = firstBtn.getAttribute('onclick') || '';
+          const m = oc.match(/showTab\('([^']+)'/);
+          showTab(m && m[1] ? m[1] : 'home', firstBtn);
+        } else {
+          showTab('home');
+        }
+      }
+
+      // Timetable: click day heading to expand/collapse the day
+      document.querySelectorAll('#timetable .timetable-day > h3').forEach(function(h){
+        const day = h.parentElement;
+        if (!day) return;
+        h.addEventListener('click', function(){
+          day.classList.toggle('collapsed');
+        });
+      });
+    });
+  </script>
+</body>
+</html>
