@@ -145,6 +145,26 @@ body {
   font-size: 0.9rem;
   color: #718096;
 }
+/* Ensure SOLD OUT ribbon positions correctly */
+.event-card{
+  position: relative;
+  overflow: hidden;
+}
+/* SOLD OUT ribbon */
+.sold-out{
+  position: absolute;
+  top: 18px;
+  right: -40px;
+  background: #e53e3e;
+  color: #ffffff;
+  padding: 0.5rem 3rem;
+  font-weight: 900;
+  font-size: 0.9rem;
+  transform: rotate(45deg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  z-index: 10;
+  letter-spacing: 1px;
+}
 
 </style>
 
