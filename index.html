@@ -177,7 +177,15 @@ body {
 </head>
 <body>
     <div class="header">
-        <h1>🏘️ Elizabethan Hall</h1>
+      <div class="header-top">
+    <h1 class="site-title">Elizabethan Hall</h1>
+
+    <div class="sponsor-inline">
+        <span class="sponsor-label">Proudly Supported By</span>
+        <img src="ballinger trust.png" alt="Ballinger Charitable Trust">
+    </div>
+</div>
+
         <p>Community events, groups and activities</p>
     </div>
 
@@ -247,6 +255,33 @@ body {
         <img src="poly1.jpg" alt="Polytunnel makeover stage 1" style="width:100%; height:220px; object-fit:cover;">
       </a>
     </div>
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.site-title {
+    margin: 0;
+}
+
+.sponsor-inline {
+    text-align: right;
+}
+
+.sponsor-label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #777;
+    margin-bottom: 5px;
+}
+
+.sponsor-inline img {
+    max-height: 55px;
+    height: auto;
+}
 
     <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
       <a href="poly2.jpg">
