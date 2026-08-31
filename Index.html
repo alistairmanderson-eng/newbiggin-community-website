@@ -6,34 +6,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Elizabethan Hall &#8211; Newbiggin-by-the-Sea</title>
   <style>
-    #woodshop { background-image: url('20240926_132446.jpg'); background-size: cover; background-position: center; padding: 3rem 1rem; position: relative; }
-    #woodshop::before { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, .45); z-index: 0; }
-    #woodshop > * { position: relative; z-index: 1; }
-    #woodshop .card { background: rgba(255, 255, 255, .88); backdrop-filter: blur(4px); }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f6f4ef; background-image: radial-gradient(rgba(0, 0, 0, .03) 1px, transparent 1px); background-size: 22px 22px; font-family: 'Segoe UI', system-ui, sans-serif; color: #2d3748; line-height: 1.6; padding: 1.5rem; max-width: 900px; margin: 0 auto; }
+    header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .site-title { font-size: 2rem; color: #1f4f38; font-weight: 800; }
+    .sponsor-inline { text-align: right; }
+    .sponsor-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #718096; }
+    .nav-tabs { display: flex; gap: .5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .tab-btn { background: #2f6f4e; color: #fff; border: none; padding: .75rem 1.25rem; border-radius: 999px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .tab-btn:hover { background: #3f8a63; transform: translateY(-2px); }
+    .tab-btn.active { background: #1f4f38; box-shadow: 0 4px 12px rgba(0, 0, 0, .15); }
     .content-section { display: none; }
     .content-section.active { display: block; }
-    body { background: #f6f4ef !important; background-image: radial-gradient(rgba(0, 0, 0, .03) 1px, transparent 1px) !important; background-size: 22px 22px !important; font-family: 'Segoe UI', system-ui, sans-serif !important; }
-    .nav-tabs { gap: .5rem !important; margin-bottom: 2rem !important; display: flex; flex-wrap: wrap; }
-    .tab-btn { background: #2f6f4e !important; color: #fff !important; border: none !important; padding: .75rem 1.25rem !important; border-radius: 999px !important; font-size: 1rem !important; font-weight: 600 !important; cursor: pointer; }
-    .tab-btn:hover { background: #3f8a63 !important; transform: translateY(-2px) !important; }
-    .tab-btn.active { background: #1f4f38 !important; box-shadow: 0 6px 16px rgba(0, 0, 0, .2) !important; }
-    #timetable .timetable-day > h3 { cursor: pointer; background: linear-gradient(135deg, #2f6f4e, #48bb78); color: #fff; padding: .75rem 1rem; border-radius: 12px; font-size: 1.15rem; font-weight: 700; margin-bottom: .5rem; }
-    #timetable .timetable-day > h3::after { content: " ▼"; float: right; font-size: .9rem; opacity: .9; }
-    #timetable .timetable-day.collapsed > h3::after { content: " ▶"; }
-    #timetable .timetable-day.collapsed .activity { display: none; }
-    #timetable .activity { border-left: 5px solid #2f6f4e; background: #fff; padding: .75rem 1rem; border-radius: 0 8px 8px 0; }
-    #timetable .activity + .activity { margin-top: 1rem; }
-    #timetable .activity-time { font-weight: 800; color: #2f6f4e; display: block; margin-bottom: .15rem; }
-    #timetable .activity-name { font-weight: 700; font-size: 1.05rem; color: #2d3748; display: block; }
-    #timetable .activity-note { display: block; margin-top: .15rem; font-size: .9rem; color: #718096; }
-    .activity-details { display: none; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid #e2e8f0; }
+    .card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .05); margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
+    .card h3 { color: #1f4f38; margin-bottom: .75rem; }
+    .btn { background: #2f6f4e; color: #fff; border: none; padding: .5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .btn-secondary { background: #718096; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: .9rem; font-weight: 600; margin-bottom: .25rem; }
+    .form-group input, .form-group textarea { width: 100%; padding: .5rem; border: 1px solid #cbd5e0; border-radius: 6px; }
+    #timetable { display: flex; flex-direction: column; gap: 1rem; }
+    .timetable-day { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, .05); border: 1px solid #e2e8f0; }
+    .timetable-day > h3 { cursor: pointer; background: linear-gradient(135deg, #2f6f4e, #48bb78); color: #fff; padding: .85rem 1.25rem; font-size: 1.15rem; font-weight: 700; user-select: none; }
+    .timetable-day > h3::after { content: " ▼"; float: right; font-size: .85rem; opacity: .9; }
+    .timetable-day.collapsed > h3::after { content: " ▶"; }
+    .timetable-day.collapsed .activity, .timetable-day.collapsed .private-bookings { display: none; }
+    .activity { border-left: 5px solid #2f6f4e; background: #fff; padding: .85rem 1.25rem; border-bottom: 1px solid #edf2f7; }
+    .activity:last-child { border-bottom: none; }
+    .activity.expandable { cursor: pointer; }
+    .activity-time { font-weight: 800; color: #2f6f4e; display: block; font-size: .9rem; }
+    .activity-name { font-weight: 700; font-size: 1.05rem; color: #2d3748; display: block; }
+    .activity-note { display: block; font-size: .85rem; color: #718096; margin-top: .15rem; }
+    .activity-details { display: none; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid #e2e8f0; font-size: .95rem; }
     .activity-details.active { display: block; }
-    .event-card { position: relative; overflow: hidden; }
-    .header { padding: 1.5rem 1rem; }
-    .header-top { display: flex; justify-content: space-between; align-items: center; }
-    .site-title { margin: 0; }
-    .sponsor-inline { text-align: right; }
-    .sponsor-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #777; margin-bottom: 3px; }
+    .private-bookings { padding: 1rem 1.25rem; color: #718096; font-style: italic; }
+    .badge { background: #ebf8ff; color: #2b6cb0; font-size: .75rem; padding: .15rem .5rem; border-radius: 999px; font-weight: 600; display: inline-block; margin-left: .5rem; }
   </style>
 </head>
 <body>
@@ -60,13 +68,13 @@
       <h3>&#128240; Latest Updates</h3>
       <p>Welcome to our community hub website! Check back regularly for news and announcements.</p>
       <div style="margin-top:1.5rem;">
-        <h4 style="color:#667eea;margin-bottom:1rem;">&#128248; Work in Progress</h4>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;">
-          <div style="border-radius:8px;overflow:hidden;">
+        <h4 style="color:#2f6f4e; margin-bottom:1rem;">&#128248; Work in Progress</h4>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem;">
+          <div style="border-radius:8px; overflow:hidden; border:1px solid #e2e8f0;">
             <a href="garden1.jpg" style="display:block;">
-              <img src="garden1.jpg" alt="New fence" style="width:100%;height:180px;object-fit:cover;">
+              <img src="garden1.jpg" alt="New fence" style="width:100%; height:180px; object-fit:cover;">
             </a>
-            <p style="margin:.5rem 0 0;font-size:.85rem;color:#718096;text-align:center;">New fence &amp; raised beds</p>
+            <p style="padding:.5rem; font-size:.85rem; color:#718096; text-align:center;">New fence &amp; raised beds</p>
           </div>
         </div>
       </div>
@@ -78,12 +86,11 @@
     <div class="card">
       <h3>&#128197; Community Garden Open Day</h3>
       <p><strong>Coming soon</strong></p>
-      <p>Come and see the progress on our new community garden. Tours, planting demonstrations, and refreshments available.</p>
+      <p style="margin-bottom: 1rem;">Come and see the progress on our new community garden. Tours, planting demonstrations, and refreshments available.</p>
       <button class="btn" onclick="showBookingForm('Garden Open Day')">Register Interest</button>
     </div>
     <div id="bookingFormCard" class="card" style="display:none;">
       <h3>&#128221; Event Booking</h3>
-      <div id="bookingAlert" class="alert alert-success" style="display:none;"></div>
       <form id="bookingForm" method="post" name="event-booking">
         <input type="hidden" name="form-name" value="event-booking">
         <div class="form-group"><label>Event</label><input type="text" id="bookingEvent" name="event" readonly></div>
@@ -93,7 +100,7 @@
         <div class="form-group"><label>Number of Attendees</label><input type="number" id="bookingAttendees" name="attendees" min="1" value="1"></div>
         <div class="form-group"><label>Special Requirements</label><textarea id="bookingNotes" name="notes" placeholder="Dietary requirements, accessibility needs, etc."></textarea></div>
         <button type="submit" class="btn">Submit Booking</button>
-        <button type="button" class="btn btn-secondary" onclick="hideBookingForm()" style="margin-left:.5rem;">Cancel</button>
+        <button type="button" class="btn btn-secondary" onclick="hideBookingForm()">Cancel</button>
       </form>
     </div>
   </div>
@@ -279,15 +286,15 @@
           <p>&#163;15/month membership, safety induction required. Email <a href="mailto:newbigginwoodwork@gmail.com">newbigginwoodwork@gmail.com</a></p>
         </div>
       </div>
-      <div class="private-bookings" style="margin-top:1rem;">
-        <p style="margin:0;">Available for private events</p>
+      <div class="private-bookings">
+        <p>Available for private events</p>
       </div>
     </div>
 
     <div class="timetable-day">
       <h3 onclick="toggleDay(this.parentElement)">Sunday</h3>
       <div class="private-bookings">
-        <p style="margin:0;">Available for private events</p>
+        <p>Available for private events</p>
       </div>
     </div>
 
