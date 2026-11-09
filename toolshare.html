@@ -85,14 +85,18 @@ nav button{background:#285d45;color:#fff}.btn{background:#176b43;color:#fff}.btn
 
 <div class="card" style="margin-top:15px">
 <h3>Pass On a Tool</h3>
-<p>Please give us enough information to contact you and arrange the handover.</p>
-<label>Tool name<br><input id="lendName" placeholder="e.g. Cordless drill"></label>
+<p>Please complete the required contact and tool details so Elizabethan Hall can assess the donation and arrange the handover.</p>
+<label>Your full name (required)<br><input id="lendDonorName" type="text" autocomplete="name" maxlength="120" required placeholder="e.g. Alex Smith"></label>
+<label>Address line 1 (required)<br><input id="lendAddress" type="text" autocomplete="address-line1" maxlength="120" required placeholder="House number and street"></label>
+<label>Town or city (required)<br><input id="lendTown" type="text" autocomplete="address-level2" maxlength="80" required></label>
+<label>Postcode (required)<br><input id="lendPostcode" type="text" autocomplete="postal-code" maxlength="10" required></label>
+<label>Tool name (required)<br><input id="lendName" maxlength="100" required placeholder="e.g. Cordless drill"></label>
 <label>Category<br><select id="lendCategory"><option>Hand Tools</option><option>Garden</option><option>Access</option><option>Power Tools</option><option>Cleaning</option><option>Building</option><option>Other</option></select></label>
-<label>Description<br><input id="lendDescription" placeholder="What is it and what can it be used for?"></label>
+<label>Description (required)<br><input id="lendDescription" maxlength="500" required placeholder="What is it and what can it be used for?"></label>
 <label>Condition<br><select id="lendCondition"><option>Excellent</option><option>Good</option><option>Used but working</option></select></label>
 <label>Safety / experience requirements<br><input id="lendSafety" placeholder="e.g. Basic DIY experience recommended"></label>
-<label>Estimated replacement value (£)<br><input id="lendValue" type="number" min="0" step="1" placeholder="e.g. 50"></label>
-<label>Email address<br><input id="lendEmail" type="email" placeholder="you@example.com"></label>
+<label>Estimated replacement value (£, required)<br><input id="lendValue" type="number" min="1" step="1" required placeholder="e.g. 50"></label>
+<label>Email address (required)<br><input id="lendEmail" type="email" autocomplete="email" maxlength="254" required placeholder="you@example.com"></label>
 
 <p><b>How would you prefer to hand over the tool?</b></p>
 <p>
@@ -372,6 +376,17 @@ restoreSavedCatalogue();
  subs.forEach((x,i)=>{if(x.status!=='Approved')return; const exists=tools.find(t=>t.communitySubmissionId===x.id || (t.type==='Community'&&t.name.toLowerCase()===String(x.name).toLowerCase())); if(exists){x.catalogueId=exists.id;return;} const id=x.catalogueId||('community-'+Date.now()+'-'+i); tools.push({id,name:x.name,icon:x.icon||'🛠️',rate:Number(x.rate)||2,value:Number(x.value)||0,category:x.category||'Other',condition:x.condition||'Good',notes:x.description||'Hall-owned tool available to borrow.',safety:x.safety||'',owner:'Pass-On Tool',type:'Community',communitySubmissionId:x.id||('submission-'+Date.now()+'-'+i),...HALL_PICKUP}); x.catalogueId=id;});
  localStorage.setItem('toolshareDonorSubmissions',JSON.stringify(subs)); save();
 })();
+function donorSubmissionMissing(x){
+  const missing=[];
+  if(!String(x?.donorName||'').trim()) missing.push('donor name');
+  const email=String(x?.email||'').trim();
+  const emailCheck=document.createElement('input'); emailCheck.type='email'; emailCheck.value=email;
+  if(!email||!emailCheck.checkValidity()) missing.push('valid email address');
+  if(!String(x?.address||'').trim()) missing.push('street address');
+  if(!String(x?.town||'').trim()) missing.push('town or city');
+  if(!String(x?.postcode||'').trim()) missing.push('postcode');
+  return missing;
+}
 function renderDonorAdmin(){
  const a=JSON.parse(localStorage.getItem('toolshareDonorSubmissions')||'[]');
  const el=document.getElementById('donorAdminList');
@@ -388,6 +403,8 @@ function approveDonor(i){
  const a=JSON.parse(localStorage.getItem('toolshareDonorSubmissions')||'[]');
  if(!a[i])return;
  const x=a[i];
+ const missing=donorSubmissionMissing(x);
+ if(missing.length){alert('This submission cannot be approved yet. Missing or invalid: '+missing.join(', ')+'. Contact the donor to update the details first.');renderDonorAdmin();return;}
  if(x.status==='Approved' && x.catalogueId){alert(x.name+' is already in the catalogue.');renderDonorAdmin();return;}
  const existing=tools.find(t=>t.communitySubmissionId===x.id || (t.type==='Community' && t.name.toLowerCase()===x.name.toLowerCase()));
  if(existing){x.status='Approved';x.catalogueId=existing.id;localStorage.setItem('toolshareDonorSubmissions',JSON.stringify(a));renderDonorAdmin();alert(x.name+' is already in the catalogue.');return;}
@@ -715,13 +732,16 @@ renderTools();
     if(!box)return;
     const a=read();
     box.innerHTML=a.length ? a.map((x,i)=>{
+      const missing=donorSubmissionMissing(x);
       let action=x.status==='Approved'
         ? '<span class="tag">APPROVED</span> <span class="tag">✓ In catalogue</span>'
         : x.status==='Rejected'
           ? '<span class="tag">REJECTED</span>'
-          : '<button class="btn" data-v10approve="'+i+'">APPROVE & ADD TO CATALOGUE</button> <button class="btn alt" data-v10reject="'+i+'">REJECT</button>';
+          : (missing.length?'<span class="tag" style="background:#fff3cd;color:#6b4f00">NEEDS DETAILS: '+esc(missing.join(', '))+'</span> ':'')+(missing.length?'':'<button class="btn" data-v10approve="'+i+'">APPROVE & ADD TO CATALOGUE</button> ')+(missing.length?'':'')+'<button class="btn alt" data-v10reject="'+i+'">REJECT</button>';
       return '<div class="card" style="margin:10px 0;border-left:5px solid #2f855a">'+
         '<h3>💚 '+esc(x.name)+'</h3>'+
+        '<p><b>Donor:</b> '+esc(x.donorName||'Not supplied')+' · <b>Email:</b> '+esc(x.email||'Not supplied')+'</p>'+
+        '<p><b>Address:</b> '+esc([x.address,x.town,x.postcode].filter(Boolean).join(', ')||'Not supplied')+'</p>'+
         '<p><b>'+esc(x.category||'Other')+'</b> · '+esc(x.condition||'Not stated')+'</p>'+
         '<p>'+esc(x.description||'No description supplied')+'</p>'+
         '<p><b>Safety:</b> '+esc(x.safety||'None stated')+'</p>'+
@@ -732,6 +752,8 @@ renderTools();
 
   function approve(i){
     const a=read(), x=a[i]; if(!x)return;
+    const missing=donorSubmissionMissing(x);
+    if(missing.length){alert('This submission cannot be approved yet. Missing or invalid: '+missing.join(', ')+'. Contact the donor to update the details first.');admin();return;}
     ensureCommunityInCatalogue(x);
     x.status='Approved';
     write(a);
@@ -748,6 +770,11 @@ renderTools();
 
   function submit(){
     const name=(document.getElementById('lendName')?.value||'').trim();
+    const donorName=(document.getElementById('lendDonorName')?.value||'').trim();
+    const address=(document.getElementById('lendAddress')?.value||'').trim();
+    const town=(document.getElementById('lendTown')?.value||'').trim();
+    const postcode=(document.getElementById('lendPostcode')?.value||'').trim();
+    const description=(document.getElementById('lendDescription')?.value||'').trim();
     const email=(document.getElementById('lendEmail')?.value||'').trim();
     const value=(document.getElementById('lendValue')?.value||'').trim();
     const owner=document.getElementById('lendOwner')?.checked;
@@ -755,22 +782,14 @@ renderTools();
     const contact=document.getElementById('lendContact')?.checked;
     const handover=document.querySelector('input[name="handover"]:checked')?.value||'Drop-off';
     const date=document.getElementById('lendDate')?.value||'';
-    if(!name){
-      alert('Please enter the tool name.');
-      return false;
-    }
-    if(!email){
-      alert('Please enter your email address so Elizabethan Hall can confirm the donation and arrange the handover.');
-      return false;
-    }
-    if(!value){
-      alert('Please enter the estimated replacement value.');
-      return false;
-    }
-    if(!owner||!terms||!contact){
-      alert('Please complete all three donation confirmations.');
-      return false;
-    }
+    const requiredFields=[[donorName,'your full name','lendDonorName'],[address,'your street address','lendAddress'],[town,'your town or city','lendTown'],[postcode,'your postcode','lendPostcode'],[name,'the tool name','lendName'],[description,'a tool description','lendDescription']];
+    const missingField=requiredFields.find(row=>!row[0]);
+    if(missingField){alert('Please enter '+missingField[1]+'.');document.getElementById(missingField[2])?.focus();return false;}
+    const emailField=document.getElementById('lendEmail');
+    if(!email||!emailField?.checkValidity()){alert('Please enter a valid email address so Elizabethan Hall can confirm the donation and arrange the handover.');emailField?.focus();return false;}
+    if(!Number.isFinite(Number(value))||Number(value)<1){alert('Please enter an estimated replacement value of at least £1.');document.getElementById('lendValue')?.focus();return false;}
+    if(!owner||!terms||!contact){alert('Please complete all three donation confirmations.');return false;}
+    if(handover!=='Collection'){if(!date){alert('Please choose a preferred drop-off date.');document.getElementById('lendDate')?.focus();return false;}const day=new Date(date+'T12:00:00').getDay();if(![1,3,5,6].includes(day)){alert('That date is closed for drop-off. Please choose Monday, Wednesday, Friday or Saturday.');document.getElementById('lendDate')?.focus();return false;}}
     const a=read();
     a.push({
       id:'submission-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
@@ -780,6 +799,7 @@ renderTools();
       condition:document.getElementById('lendCondition')?.value||'Good',
       safety:(document.getElementById('lendSafety')?.value||'').trim(),
       value:Number(value), rate:2,
+      donorName,address,town,postcode,description,
       email,
       handover,
       preferredDate:date,
@@ -1166,6 +1186,10 @@ Please use the Woodwork Room at the back of the Hall, accessed through the Commu
   <input type="text" name="bot-field">
   <input type="text" name="name">
   <input type="email" name="email">
+  <input type="text" name="donor-name">
+  <input type="text" name="address">
+  <input type="text" name="town">
+  <input type="text" name="postcode">
   <input type="text" name="tool-name">
   <input type="text" name="category">
   <textarea name="description"></textarea>
