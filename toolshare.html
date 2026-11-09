@@ -125,38 +125,35 @@ Monday 10am–1pm · Wednesday 1pm–6pm · Friday 10am–1pm · Saturday 10am�
 <section id="join" class="page">
 <h2>🤝 Join Toolshare</h2>
 <div class="card">
-<h3>Choose your membership</h3>
-<p>Join your local tool-sharing community. Your annual membership helps Elizabethan Hall run Toolshare and grow the range of equipment available to Newbiggin.</p>
-<div class="grid">
-<div class="card" style="border:3px solid #cd7f32">
-<h2>🥉 Bronze</h2><h3>£10 / year</h3>
-<p><b>GET STARTED</b></p>
-<p>Access to everyday tools including hand tools, garden tools, ladders and simpler equipment.</p><p class="muted"><b>Best for:</b> occasional borrowers and everyday jobs.</p>
-<button class="btn" onclick="selectMembership('Bronze',10)">CHOOSE BRONZE</button>
-</div>
-<div class="card" style="border:3px solid #a9a9a9">
-<h2>🥈 Silver</h2><h3>£20 / year</h3>
-<p><b>GET MORE DONE</b></p>
-<p>Everything in Bronze, plus a wider range of power tools and more specialist equipment.</p><p class="muted"><b>Best for:</b> regular DIY and home projects.</p>
-<button class="btn" onclick="selectMembership('Silver',20)">CHOOSE SILVER</button>
-</div>
-<div class="card" style="border:3px solid #d4af37">
-<h2>🥇 Gold</h2><h3>£30 / year</h3>
-<p><b>FULL ACCESS</b></p>
-<p>Our widest range of tools, including higher-value and specialist equipment where appropriate.</p><p class="muted"><b>Best for:</b> members who want the widest choice.</p>
-<button class="btn" onclick="selectMembership('Gold',30)">CHOOSE GOLD</button>
-</div>
+<h3>One membership. The full tool catalogue.</h3>
+<p>Join your local tool-sharing community for <strong>£30 per year</strong>. Every member can access the full tool catalogue. Daily hire charges are separate, and some tools may have safety, experience or availability conditions.</p>
+<div class="card" style="border:3px solid #2f6b4f">
+<h2>🤝 Newbiggin Toolshare Membership</h2><h3>£30 / year</h3>
+<p><b>FULL CATALOGUE ACCESS</b></p>
+<p>One annual membership gives every member equal access to the full catalogue, subject to tool-specific safety and experience requirements.</p>
+<button class="btn" onclick="selectMembership()">JOIN FOR £30 / YEAR</button>
 </div>
 <div class="notice" style="margin-top:15px">
-<b>Every membership helps Toolshare grow.</b><br>
-Your annual membership contributes towards running the scheme, maintaining equipment and giving Elizabethan Hall the confidence to invest in more tools for the community.
+<b>💚 Pay It Forward (optional)</b><br>
+If you can, you can contribute towards memberships for local residents who cannot afford the £30 annual fee. Elizabethan Hall allocates sponsored memberships.
 </div>
-<p class="muted">All members still pay the daily hire fee when borrowing a tool. Some tools may have safety, experience or other conditions attached.</p>
+<p class="muted">Daily tool hire charges remain separate from the annual membership fee.</p>
 </div>
 <div id="signup" class="card" style="margin-top:15px;display:none">
 <h3 id="signupTitle">Create your account</h3>
 <p><b>Your membership</b></p>
 <p id="membershipChoice"></p>
+
+<div class="notice" style="margin:12px 0">
+<b>💚 Pay It Forward contribution (optional)</b><br>
+Your contribution helps support memberships for local residents who cannot afford £30. A £30 contribution can sponsor a full year's membership. Elizabethan Hall allocates sponsored memberships.
+<label for="payItForwardAmount" style="display:block;margin-top:10px">Choose an amount</label>
+<select id="payItForwardAmount" onchange="updatePayItForwardAmount()" style="width:100%;padding:10px">
+<option value="0">No contribution</option><option value="5">£5</option><option value="10">£10</option><option value="20">£20</option><option value="30">£30 — sponsor a full year's membership</option><option value="custom">Custom amount</option>
+</select>
+<label id="customContributionWrap" for="customContribution" style="display:none;margin-top:10px">Custom amount (£)<br><input id="customContribution" type="number" min="0.01" step="0.01" placeholder="Enter an amount" oninput="updatePayItForwardAmount()"></label>
+<p id="payItForwardPaymentNote" class="muted" style="display:none;margin-bottom:0">Pay It Forward checkout is not configured yet. Your selection will be saved as an unpaid contribution request; only the £30 annual membership will be available through the current SumUp link.</p>
+</div>
 
 <label>First name<br><input id="firstName" placeholder="First name"></label>
 <label>Last name<br><input id="lastName" placeholder="Last name"></label>
@@ -188,7 +185,7 @@ Newbiggin Toolshare is a local community scheme. We ask for your address so we c
 <b>💳 Secure payment with SumUp</b><br>
 Your card details are entered directly with SumUp. Elizabethan Hall and Toolshare do not store your full card number, expiry date or security code.
 <br><br>
-After your membership details have been completed, you will be taken to the secure SumUp payment page for your chosen membership.
+After your membership details have been completed, you will be taken to the secure SumUp payment page for the £30 annual membership. Pay It Forward contributions are not charged online until Elizabethan Hall supplies and configures their SumUp payment destination.
 </div>
 <button class="btn" onclick="createAccount()">CONTINUE TO SECURE PAYMENT</button>
 </div>
@@ -200,7 +197,8 @@ After your membership details have been completed, you will be taken to the secu
 <h3 id="accountName">Your Toolshare account</h3>
 <p id="accountMembership">Choose a membership and join the community.</p>
 <p class="muted">In the live version, this is where you will manage your membership, borrowing and Toolshare.</p>
-<button class="btn" onclick="show('join')">JOIN / CHANGE MEMBERSHIP</button>
+<p id="accountPayForward" class="muted"></p>
+<button class="btn" onclick="show('join')">JOIN TOOLSHARE</button>
 </div>
 </section>
 
@@ -339,14 +337,23 @@ function show(id){
  if(id==='admin')renderDonorAdmin();
  window.scrollTo(0,0);
 }
-function selectMembership(level,fee){
- window.selectedMembership={level,fee};
+ function selectMembership(){
+  window.selectedMembership={level:'Universal',fee:30};
  const signup=document.getElementById('signup');
  signup.style.display='block';
- document.getElementById('signupTitle').textContent='Create your '+level+' membership';
- document.getElementById('membershipChoice').innerHTML='<span class="tag">'+level.toUpperCase()+' MEMBER</span><br><b>£'+fee+' per year</b><br>All members pay the daily hire fee when borrowing tools.';
+  document.getElementById('signupTitle').textContent='Create your Toolshare membership';
+  document.getElementById('membershipChoice').innerHTML='<span class="tag">UNIVERSAL MEMBERSHIP</span><br><b>£30 per year</b><br>Equal access to the full tool catalogue. Daily hire charges are separate.';
  signup.scrollIntoView({behavior:'smooth',block:'start'});
 }
+ function updatePayItForwardAmount(){
+  const choice=document.getElementById('payItForwardAmount').value;
+  const customWrap=document.getElementById('customContributionWrap');
+  const note=document.getElementById('payItForwardPaymentNote');
+  customWrap.style.display=choice==='custom'?'block':'none';
+  const amount=choice==='custom'?Number(document.getElementById('customContribution').value||0):Number(choice);
+  note.style.display=amount>0?'block':'none';
+  return amount;
+ }
 // V6/V7 catalogue persistence helpers: keep approved community tools in the browser between sessions.
 function save(){
   const communityTools=tools.filter(t=>t.type==='Community');
@@ -486,17 +493,20 @@ function submitDonor(){
 function createAccount(){
  const name=(document.getElementById('firstName').value||'').trim();
  const email=(document.getElementById('email').value||'').trim();
- if(!window.selectedMembership){alert('Please choose a membership level first.');return}
+  if(!window.selectedMembership){alert('Please choose the £30 annual membership first.');return}
  if(!name||!email||!document.getElementById('postcode').value.trim()||!document.getElementById('age18').checked||!document.getElementById('agree').checked){alert('Please complete your name, postcode, email address, age confirmation and terms agreement.');return}
- localStorage.setItem('toolshareMember',JSON.stringify({name,email,...window.selectedMembership}));
+  const contributionAmount=updatePayItForwardAmount();
+  if(document.getElementById('payItForwardAmount').value==='custom'&&contributionAmount<=0){alert('Please enter a custom contribution greater than £0, or choose no contribution.');return}
+  localStorage.setItem('toolshareMember',JSON.stringify({name,email,...window.selectedMembership,contributionAmount}));
  document.getElementById('accountName').textContent='Welcome, '+name+'!';
- document.getElementById('accountMembership').textContent=window.selectedMembership.level+' membership — £'+window.selectedMembership.fee+' per year';
+  document.getElementById('accountMembership').textContent='Universal membership — £30 per year';
+  document.getElementById('accountPayForward').textContent=contributionAmount>0?'Pay It Forward selected: £'+(Number.isInteger(contributionAmount)?contributionAmount:contributionAmount.toFixed(2))+'. This is an unpaid contribution request; the online contribution checkout is not configured. Elizabethan Hall allocates sponsored memberships.':'No Pay It Forward contribution selected.';
 
- // SumUp payment links are connected for all three membership levels.
- const sumupLinks={Bronze:'https://pay.sumup.com/p/s/X8UV01JH7S',Silver:'https://pay.sumup.com/b2c/X85LWR4R2D',Gold:'https://pay.sumup.com/p/s/XMMVQM5KX4'};
- const paymentUrl=sumupLinks[window.selectedMembership.level]||'';
- if(paymentUrl){ window.open(paymentUrl,'_blank','noopener,noreferrer'); }
- else { alert('Your membership details are ready.\n\nThe secure SumUp payment link for '+window.selectedMembership.level+' (£'+window.selectedMembership.fee+' per year) is not yet available.\n\nNo card details have been entered or stored by Toolshare.'); }
+  // Existing £30 SumUp payment URL reused for the universal annual membership.
+  // INTEGRATION PLACEHOLDER: Elizabethan Hall must supply SumUp links for £5, £10, £20 and £30 contributions, a custom-amount checkout method, and confirm the payout account. Contribution selections are not collected until configured.
+  const membershipPaymentUrl='https://pay.sumup.com/p/s/XMMVQM5KX4';
+  if(membershipPaymentUrl){ window.open(membershipPaymentUrl,'_blank','noopener,noreferrer'); }
+  else { alert('Your membership details are ready. The £30 annual membership SumUp link still needs to be configured.'); }
  show('account');
 }
 function renderTools(){
@@ -1143,7 +1153,7 @@ Please use the Woodwork Room at the back of the Hall, accessed through the Commu
 })();
 </script>
 <!-- Netlify form definition for Pass On a Tool -->
-<form name="pass-on-a-tool" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+<form hidden method='POST' name='pass-on-a-tool'>
   <input type="hidden" name="form-name" value="pass-on-a-tool">
   <input type="text" name="bot-field">
   <input type="text" name="name">
@@ -1469,13 +1479,11 @@ document.addEventListener('DOMContentLoaded', function () {
     <h2 style="margin:0;">Admin Dashboard</h2>
     <button type="button" id="adminLogout" class="btn">Log out</button>
   </div>
-  <p style="margin-top:8px;">Private membership figures — visible to admin only.</p>
+  <p style="margin-top:8px;">Pilot membership figures stored in this browser.</p>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:16px;">
     <div style="padding:18px;border:1px solid #ddd;border-radius:12px;"><div style="font-size:.9em;">Total Members</div><strong id="adminMemberCount" style="font-size:2em;">0</strong></div>
-    <div style="padding:18px;border:1px solid #ddd;border-radius:12px;"><div style="font-size:.9em;">Membership Value</div><strong id="adminMemberValue" style="font-size:2em;">£0</strong></div>
-    <div style="padding:18px;border:1px solid #ddd;border-radius:12px;"><div style="font-size:.9em;">Bronze</div><strong id="adminBronze" style="font-size:2em;">0</strong></div>
-    <div style="padding:18px;border:1px solid #ddd;border-radius:12px;"><div style="font-size:.9em;">Silver</div><strong id="adminSilver" style="font-size:2em;">0</strong></div>
-    <div style="padding:18px;border:1px solid #ddd;border-radius:12px;"><div style="font-size:.9em;">Gold</div><strong id="adminGold" style="font-size:2em;">0</strong></div>
+    <div style="padding:18px;border:1px solid #ddd;border-radius:12px;"><div style="font-size:.9em;">Indicative annual membership value</div><strong id="adminMemberValue" style="font-size:2em;">£0</strong></div>
+    <div style="padding:18px;border:1px solid #ddd;border-radius:12px;"><div style="font-size:.9em;">Pay It Forward selected (unpaid)</div><strong id="adminPayForwardValue" style="font-size:2em;">£0</strong></div>
   </div>
 
   <div style="margin-top:24px;padding-top:20px;border-top:1px solid #ddd;">
@@ -1513,33 +1521,22 @@ document.addEventListener('DOMContentLoaded', function () {
         let v;
         try{v=JSON.parse(localStorage.getItem(k));}catch(e){return;}
         if(!v || typeof v!=='object') return;
-        const s=JSON.stringify(v).toLowerCase();
-        if((s.includes('membership') || s.includes('bronze') || s.includes('silver') || s.includes('gold')) &&
-           (s.includes('£10') || s.includes('10') || s.includes('£20') || s.includes('20') || s.includes('£30') || s.includes('30'))){
+        if(k==='toolshareMember' || (typeof v.email==='string' && (typeof v.fee==='number' || typeof v.level==='string'))){
           records.push(v);
         }
       });
     }catch(e){}
     return records;
   }
-  function levelOf(v){
-    const s=JSON.stringify(v).toLowerCase();
-    if(s.includes('gold')) return ['Gold',30];
-    if(s.includes('silver')) return ['Silver',20];
-    if(s.includes('bronze')) return ['Bronze',10];
-    return [null,0];
-  }
   function refreshAdmin(){
-    const recs=getMemberships(), counts={Bronze:0,Silver:0,Gold:0}, vals={Bronze:0,Silver:0,Gold:0};
-    recs.forEach(v=>{const [l,p]=levelOf(v);if(l){counts[l]++;vals[l]+=p;}});
-    const total=counts.Bronze+counts.Silver+counts.Gold;
-    const value=vals.Bronze+vals.Silver+vals.Gold;
+    const recs=getMemberships();
+    const total=recs.length;
+    const value=total*30;
+    const payForward=recs.reduce((sum,v)=>sum+Math.max(0,Number(v.contributionAmount)||0),0);
     document.getElementById('adminMemberCount').textContent=total;
     document.getElementById('adminMemberValue').textContent='£'+value;
-    document.getElementById('adminBronze').textContent=counts.Bronze;
-    document.getElementById('adminSilver').textContent=counts.Silver;
-    document.getElementById('adminGold').textContent=counts.Gold;
-    document.getElementById('adminDataNote').textContent='Pilot figures are based on membership information stored in this browser. They are not yet a shared live database.';
+    document.getElementById('adminPayForwardValue').textContent='£'+payForward.toFixed(2);
+    document.getElementById('adminDataNote').textContent='Pilot figures are based on membership selections stored in this browser, not confirmed payments. They are not a shared live database. Pay It Forward amounts are unpaid selections.';
   }
   document.addEventListener('DOMContentLoaded',function(){
     const returnBtn=document.getElementById('staffFindReturn');
@@ -1586,13 +1583,8 @@ document.addEventListener('DOMContentLoaded', function () {
     <p>Members choose a tool, select their collection and return dates, and see the hire cost before confirming the booking.</p>
 
     <h2>Membership</h2>
-    <p>Membership is annual:</p>
-    <ul>
-      <li><strong>Bronze — £10</strong> — everyday tools</li>
-      <li><strong>Silver — £20</strong> — wider power and specialist range</li>
-      <li><strong>Gold — £30</strong> — widest range and higher-value specialist tools where appropriate</li>
-    </ul>
-    <p>Hire charges are separate from the annual membership fee. Toolshare membership is for people aged 18 or over.</p>
+    <p>There is one annual membership at <strong>£30 per year</strong>. Every member has equal access to the full tool catalogue, subject to tool-specific safety and experience requirements. Daily hire charges are separate. Toolshare membership is for people aged 18 or over.</p>
+    <p>You may optionally select a Pay It Forward contribution to support memberships for local residents who cannot afford the £30 fee. A £30 contribution can sponsor a full year's membership. Elizabethan Hall allocates sponsored memberships. Contribution checkout must be configured separately and is not currently available online.</p>
 
     <h2>Tool hire</h2>
     <p>Each tool has its own daily hire charge. The website calculates the total from the selected dates.</p>
@@ -1625,7 +1617,7 @@ document.addEventListener('DOMContentLoaded', function () {
     <p>We do not sell members' information or provide it to other organisations for marketing. Members' personal contact details are not made available to other Toolshare members. Information may be shared where necessary to provide the service, meet legal requirements, or protect members, volunteers and Hall property.</p>
 
     <h2>Payment security</h2>
-    <p>Membership payments are processed securely by SumUp. Elizabethan Hall does not store members' full card number, expiry date or security code.</p>
+    <p>The £30 annual membership payment is processed by SumUp. Elizabethan Hall does not store members' full card number, expiry date or security code. Pay It Forward contributions are not collected online until Elizabethan Hall configures a contribution payment link.</p>
     <p>Tool hire payments are made face-to-face at Elizabethan Hall by cash or card.</p>
 
     <h2>About Elizabethan Hall</h2>
