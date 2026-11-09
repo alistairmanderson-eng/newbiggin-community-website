@@ -170,13 +170,9 @@ Your contribution helps support memberships for local residents who cannot affor
 
 <div class="notice">
 <b>Local membership</b><br>
-Newbiggin Toolshare is a local community scheme. We ask for your address so we can confirm that you live within the area covered by the scheme. Proof of address may be requested separately when your membership is approved. Please bring suitable photo ID, such as a driving licence or passport, when you first visit Elizabethan Hall to collect a booked tool. Staff will check your identity at this first collection only; you won't normally need to show ID again for later collections.
+Newbiggin Toolshare is a local community scheme. We ask for your address when you join so we can confirm that you live within the area covered by the scheme. When you first visit Elizabethan Hall to collect a booked tool, please bring photo ID (a driving licence or passport) and proof of address, such as a utility bill dated within the last 3 months. Staff will check these at your first collection only; you won't normally need to show them again for later collections.
 </div>
 
-<label>Proof of address<br>
-<input id="proofAddress" type="file" accept=".jpg,.jpeg,.png,.pdf">
-</label>
-<p class="muted">For example, a driving licence, council tax letter, utility bill or other official document showing your name and address. The live system will securely handle this document.</p>
 
 <p><label><input type="checkbox" id="age18"> I confirm that I am 18 or over.</label></p>
 <p><label><input type="checkbox" id="agree"> I agree to the Newbiggin Toolshare terms and understand that my membership details will be used to operate the scheme.</label></p>
@@ -234,11 +230,11 @@ Your booking confirmation will show the agreed collection and return time.</p>
 <p>To keep collection quick and simple, please have:</p>
 <ul>
 <li>📱 <b>Your booking confirmation</b> — on your phone is fine.</li>
-<li>🪪 <b>Photo ID if this is your first collection</b> — such as a driving licence or passport.</li>
+<li>🪪 <b>For your first collection:</b> photo ID (a driving licence or passport) and proof of address, such as a utility bill dated within the last 3 months. Staff will check these once.</li>
 <li>🔑 <b>Your Toolshare membership details.</b></li>
 </ul>
 <p><b>The person collecting must be the named member on the booking</b>, unless Toolshare has agreed an alternative arrangement in advance.</p>
-<p class="muted">Once your membership has been verified, you won't normally need to provide proof of address each time you collect a tool.</p>
+<p class="muted">After the first collection check, you won't normally need to show your ID or proof of address for later collections.</p>
 </div>
 
 <div class="grid" style="margin-top:15px">
@@ -280,7 +276,7 @@ If you need the tool for longer, contact Toolshare <b>before your return time</b
 <li>For each item, Toolshare records an donation confirmation supplied by the donor. This figure is kept as part of the Toolshare record and is not displayed as part of the normal borrowing price.</li>
 <li>If an item is not returned, the borrower agrees to reimburse the donor at the donation confirmation recorded for that item.</li>
 <li>Safety information and any experience requirements shown for a tool must be followed.</li>
-<li>Membership eligibility and local address may be checked when joining Toolshare. After verification, members will not normally be asked to provide proof of address for every collection.</li>
+<li>At the first collection, staff may check photo ID (a driving licence or passport) and proof of address, such as a utility bill dated within the last 3 months. Members will not normally be asked to show these again for later collections.</li>
 </ul>
 <p class="muted">These are pilot terms and will be reviewed as the scheme develops.</p>
 </div>
@@ -533,7 +529,7 @@ function renderTools(){
 function detail(id){
  const t=tools.find(x=>String(x.id)===String(id)); if(!t)return; const community=t.type==='Community';
  const pickup=t.pickupDetails||HALL_PICKUP.pickupDetails, times=t.pickupTimes||HALL_PICKUP.pickupTimes, safety=t.safety?'<p><b>Safety / experience:</b> '+esc(t.safety)+'</p>':'';
- document.getElementById('detail').innerHTML='<button class="btn alt" onclick="show(\'borrow\')">← Back</button><div class="card" style="margin-top:15px"><div class="pic">'+(t.icon||'🛠️')+'</div><h2>'+esc(t.name)+'</h2><span class="tag">'+(community?'💚 Pass-On Tool':'🏛️ Hall Tool')+'</span> <span class="tag">'+esc(t.category)+'</span><p>'+esc(t.notes||'')+'</p>'+safety+'<p><b>Condition:</b> '+esc(t.condition||'Good')+'</p><p><b>Hire:</b> £'+Number(t.rate||0)+' per day</p><div class="notice"><b>📍 Collection & return</b><br><b>Elizabethan Hall</b><br>Hepple Road, Newbiggin-by-the-Sea, NE64 6ST<br><br>'+esc(pickup)+'<br><br><b>Collection / return times:</b><br>'+esc(times)+'</div><p class="muted" style="margin-top:12px">Bring your booking confirmation. At first collection, bring photo ID and your Toolshare membership details. The named member must collect unless an alternative has been agreed.</p><div class="notice"><b>Simple pilot agreement:</b> by borrowing, you agree to return the item as received. If it is not returned, the borrower agrees to reimburse the donor at the replacement value recorded in the Toolshare terms.</div><p><label>Borrow from<br><input type="date" id="from"></label><label>Return by<br><input type="date" id="to"></label></p><button class="btn" onclick="borrow('+JSON.stringify(t.id)+')">REQUEST THIS TOOL</button></div>'; show('detail');
+ document.getElementById('detail').innerHTML='<button class="btn alt" onclick="show(\'borrow\')">← Back</button><div class="card" style="margin-top:15px"><div class="pic">'+(t.icon||'🛠️')+'</div><h2>'+esc(t.name)+'</h2><span class="tag">'+(community?'💚 Pass-On Tool':'🏛️ Hall Tool')+'</span> <span class="tag">'+esc(t.category)+'</span><p>'+esc(t.notes||'')+'</p>'+safety+'<p><b>Condition:</b> '+esc(t.condition||'Good')+'</p><p><b>Hire:</b> £'+Number(t.rate||0)+' per day</p><div class="notice"><b>📍 Collection & return</b><br><b>Elizabethan Hall</b><br>Hepple Road, Newbiggin-by-the-Sea, NE64 6ST<br><br>'+esc(pickup)+'<br><br><b>Collection / return times:</b><br>'+esc(times)+'</div><p class="muted" style="margin-top:12px">Bring your booking confirmation and Toolshare membership details. At your first collection, bring photo ID (a driving licence or passport) and proof of address, such as a utility bill dated within the last 3 months. The named member must collect unless an alternative has been agreed.</p><div class="notice"><b>Simple pilot agreement:</b> by borrowing, you agree to return the item as received. If it is not returned, the borrower agrees to reimburse the donor at the replacement value recorded in the Toolshare terms.</div><p><label>Borrow from<br><input type="date" id="from"></label><label>Return by<br><input type="date" id="to"></label></p><button class="btn" onclick="borrow('+JSON.stringify(t.id)+')">REQUEST THIS TOOL</button></div>'; show('detail');
 }
 function borrow(id){const t=tools.find(x=>String(x.id)===String(id)); if(!t){alert('Tool could not be found. Please return to Borrow and try again.');return;}let loans=JSON.parse(localStorage.getItem('toolshareLoans')||'[]');loans.push({tool:t.name,rate:t.rate,date:new Date().toLocaleDateString()});localStorage.setItem('toolshareLoans',JSON.stringify(loans));alert('Demo booking recorded for '+t.name);show('loans')}
 function renderLoans(){let a=JSON.parse(localStorage.getItem('toolshareLoans')||'[]');document.getElementById('loanBox').innerHTML=a.length?a.map(x=>`<p><b>${x.tool}</b> — £${x.rate}/day — requested ${x.date}</p>`).join(''):'<p>No active demo loans.</p>'}
@@ -1033,7 +1029,7 @@ Please use the Woodwork Room at the back of the Hall, accessed through the Commu
         '<p><b>Collection:</b> '+esc(formatDate(s))+'</p>'+
         '<p><b>Return:</b> '+esc(formatDate(e))+'</p>'+
         '<p><b>Hire:</b> £'+booking.total.toFixed(2)+' ('+days+' day'+(days===1?'':'s')+')</p>'+
-        '<p>Bring your booking confirmation and photo ID for your first collection.</p>'+
+        '<p>Bring your booking confirmation, photo ID (a driving licence or passport) and proof of address, such as a utility bill dated within the last 3 months, for your first collection.</p>'+
         '<p><b>Collection/return:</b> Woodwork Room at the back of Elizabethan Hall, accessed through the Community Allotment.</p>'+
         '<div class="ts-pass">'+
           '<h3>🎟️ Your Toolshare Collection Pass</h3>'+
