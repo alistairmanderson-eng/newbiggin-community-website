@@ -152,7 +152,7 @@ Your contribution helps support memberships for local residents who cannot affor
 <option value="0">No contribution</option><option value="5">£5</option><option value="10">£10</option><option value="20">£20</option><option value="30">£30 — sponsor a full year's membership</option><option value="custom">Custom amount</option>
 </select>
 <label id="customContributionWrap" for="customContribution" style="display:none;margin-top:10px">Custom amount (£)<br><input id="customContribution" type="number" min="0.01" step="0.01" placeholder="Enter an amount" oninput="updatePayItForwardAmount()"></label>
-<p id="payItForwardPaymentNote" class="muted" style="display:none;margin-bottom:0">Pay It Forward checkout is not configured yet. Your selection will be saved as an unpaid contribution request; only the £30 annual membership will be available through the current SumUp link.</p>
+<p id="payItForwardPaymentNote" class="muted" style="display:none;margin-bottom:0">A £10 contribution can be paid separately after the membership checkout. Other contribution amounts will be saved as unpaid requests until their SumUp links are configured.</p>
 </div>
 
 <label>First name<br><input id="firstName" placeholder="First name"></label>
@@ -198,6 +198,7 @@ After your membership details have been completed, you will be taken to the secu
 <p id="accountMembership">Choose a membership and join the community.</p>
 <p class="muted">In the live version, this is where you will manage your membership, borrowing and Toolshare.</p>
 <p id="accountPayForward" class="muted"></p>
+<button id="payForwardCheckout" class="btn" style="display:none" onclick="payForwardTen()">PAY £10 PAY IT FORWARD CONTRIBUTION</button>
 <button class="btn" onclick="show('join')">JOIN TOOLSHARE</button>
 </div>
 </section>
@@ -352,6 +353,7 @@ function show(id){
   customWrap.style.display=choice==='custom'?'block':'none';
   const amount=choice==='custom'?Number(document.getElementById('customContribution').value||0):Number(choice);
   note.style.display=amount>0?'block':'none';
+  note.textContent=choice==='10'?'A £10 contribution can be paid separately after the membership checkout. Other contribution amounts will be saved as unpaid requests until their SumUp links are configured.':'Other contribution amounts will be saved as unpaid requests until their SumUp links are configured.';
   return amount;
  }
 // V6/V7 catalogue persistence helpers: keep approved community tools in the browser between sessions.
@@ -500,14 +502,20 @@ function createAccount(){
   localStorage.setItem('toolshareMember',JSON.stringify({name,email,...window.selectedMembership,contributionAmount}));
  document.getElementById('accountName').textContent='Welcome, '+name+'!';
   document.getElementById('accountMembership').textContent='Universal membership — £30 per year';
-  document.getElementById('accountPayForward').textContent=contributionAmount>0?'Pay It Forward selected: £'+(Number.isInteger(contributionAmount)?contributionAmount:contributionAmount.toFixed(2))+'. This is an unpaid contribution request; the online contribution checkout is not configured. Elizabethan Hall allocates sponsored memberships.':'No Pay It Forward contribution selected.';
+  const payForwardButton=document.getElementById('payForwardCheckout');
+  payForwardButton.style.display=contributionAmount===10?'block':'none';
+  document.getElementById('accountPayForward').textContent=contributionAmount===10?'Pay It Forward selected: £10. The contribution is a separate payment and will remain unconfirmed here until Elizabethan Hall checks SumUp. Elizabethan Hall allocates sponsored memberships.':contributionAmount>0?'Pay It Forward selected: £'+(Number.isInteger(contributionAmount)?contributionAmount:contributionAmount.toFixed(2))+'. This is an unpaid contribution request while a SumUp link for this amount is being configured. Elizabethan Hall allocates sponsored memberships.':'No Pay It Forward contribution selected.';
 
   // Existing £30 SumUp payment URL reused for the universal annual membership.
-  // INTEGRATION PLACEHOLDER: Elizabethan Hall must supply SumUp links for £5, £10, £20 and £30 contributions, a custom-amount checkout method, and confirm the payout account. Contribution selections are not collected until configured.
+  // The £10 Pay It Forward link is configured. Other contribution links and custom checkout remain to be supplied.
   const membershipPaymentUrl='https://pay.sumup.com/p/s/XMMVQM5KX4';
   if(membershipPaymentUrl){ window.open(membershipPaymentUrl,'_blank','noopener,noreferrer'); }
   else { alert('Your membership details are ready. The £30 annual membership SumUp link still needs to be configured.'); }
  show('account');
+}
+function payForwardTen(){
+  const payItForwardUrl='https://pay.sumup.com/b2c/QVHDDXWM';
+  window.open(payItForwardUrl,'_blank','noopener,noreferrer');
 }
 function renderTools(){
  const sel=document.getElementById('cat'); if(!sel)return;
