@@ -376,6 +376,14 @@ restoreSavedCatalogue();
  subs.forEach((x,i)=>{if(x.status!=='Approved')return; const exists=tools.find(t=>t.communitySubmissionId===x.id || (t.type==='Community'&&t.name.toLowerCase()===String(x.name).toLowerCase())); if(exists){x.catalogueId=exists.id;return;} const id=x.catalogueId||('community-'+Date.now()+'-'+i); tools.push({id,name:x.name,icon:x.icon||'🛠️',rate:Number(x.rate)||2,value:Number(x.value)||0,category:x.category||'Other',condition:x.condition||'Good',notes:x.description||'Hall-owned tool available to borrow.',safety:x.safety||'',owner:'Pass-On Tool',type:'Community',communitySubmissionId:x.id||('submission-'+Date.now()+'-'+i),...HALL_PICKUP}); x.catalogueId=id;});
  localStorage.setItem('toolshareDonorSubmissions',JSON.stringify(subs)); save();
 })();
+function donorReplyHref(x){
+  const email=String(x?.email||'').trim();
+  if(!email)return '';
+  const subject='Re: Your tool donation to Newbiggin Toolshare';
+  const greeting=x?.donorName?'Hello '+String(x.donorName).trim()+',':'Hello,';
+  const body=greeting+'\n\n\nKind regards,\nNewbiggin Toolshare\nElizabethan Hall';
+  return 'mailto:'+encodeURIComponent(email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+}
 function donorSubmissionMissing(x){
   const missing=[];
   if(!String(x?.donorName||'').trim()) missing.push('donor name');
@@ -396,7 +404,9 @@ function renderDonorAdmin(){
    const actions=x.status==='Awaiting Hall approval'
     ? '<button class="btn" onclick="approveDonor('+i+')">APPROVE & ADD TO CATALOGUE</button> <button class="btn alt" onclick="rejectDonor('+i+')">REJECT</button>'
     : '<span class="tag">'+x.status+'</span>'+(x.catalogueId?' <span class="tag">✓ In catalogue</span>':'');
-   return '<div class="card" style="margin:10px 0"><h3>💚 '+esc(x.name)+'</h3><p><b>'+esc(x.category||'Other')+'</b> · '+esc(x.condition||'Not stated')+'</p><p>'+(esc(x.description)||'No description')+'</p><p><b>Safety:</b> '+(esc(x.safety)||'None stated')+'</p><p><b>Donation status:</b> Tool donated to Elizabethan Hall</p><p>'+actions+'</p></div>';
+   const replyHref=donorReplyHref(x);
+   const donorContact='<p><b>Donor:</b> '+esc(x.donorName||'Not supplied')+' · <b>Email:</b> '+(replyHref?'<a href="'+esc(replyHref)+'">'+esc(x.email)+'</a> <a class="btn alt" style="padding:6px 10px;margin-left:6px" href="'+esc(replyHref)+'">REPLY BY EMAIL</a>':esc(x.email||'Not supplied'))+'</p><p><b>Address:</b> '+esc([x.address,x.town,x.postcode].filter(Boolean).join(', ')||'Not supplied')+'</p>';
+   return '<div class="card" style="margin:10px 0"><h3>💚 '+esc(x.name)+'</h3>'+donorContact+'<p><b>'+esc(x.category||'Other')+'</b> · '+esc(x.condition||'Not stated')+'</p><p>'+(esc(x.description)||'No description')+'</p><p><b>Safety:</b> '+(esc(x.safety)||'None stated')+'</p><p><b>Donation status:</b> Tool donated to Elizabethan Hall</p><p>'+actions+'</p></div>';
  }).join('');
 }
 function approveDonor(i){
@@ -738,10 +748,11 @@ renderTools();
         : x.status==='Rejected'
           ? '<span class="tag">REJECTED</span>'
           : (missing.length?'<span class="tag" style="background:#fff3cd;color:#6b4f00">NEEDS DETAILS: '+esc(missing.join(', '))+'</span> ':'')+(missing.length?'':'<button class="btn" data-v10approve="'+i+'">APPROVE & ADD TO CATALOGUE</button> ')+(missing.length?'':'')+'<button class="btn alt" data-v10reject="'+i+'">REJECT</button>';
+      const replyHref=donorReplyHref(x);
+      const donorContact='<p><b>Donor:</b> '+esc(x.donorName||'Not supplied')+' · <b>Email:</b> '+(replyHref?'<a href="'+esc(replyHref)+'">'+esc(x.email)+'</a> <a class="btn alt" style="padding:6px 10px;margin-left:6px" href="'+esc(replyHref)+'">REPLY BY EMAIL</a>':esc(x.email||'Not supplied'))+'</p>'+
+        '<p><b>Address:</b> '+esc([x.address,x.town,x.postcode].filter(Boolean).join(', ')||'Not supplied')+'</p>';
       return '<div class="card" style="margin:10px 0;border-left:5px solid #2f855a">'+
-        '<h3>💚 '+esc(x.name)+'</h3>'+
-        '<p><b>Donor:</b> '+esc(x.donorName||'Not supplied')+' · <b>Email:</b> '+esc(x.email||'Not supplied')+'</p>'+
-        '<p><b>Address:</b> '+esc([x.address,x.town,x.postcode].filter(Boolean).join(', ')||'Not supplied')+'</p>'+
+        '<h3>💚 '+esc(x.name)+'</h3>'+donorContact+
         '<p><b>'+esc(x.category||'Other')+'</b> · '+esc(x.condition||'Not stated')+'</p>'+
         '<p>'+esc(x.description||'No description supplied')+'</p>'+
         '<p><b>Safety:</b> '+esc(x.safety||'None stated')+'</p>'+
