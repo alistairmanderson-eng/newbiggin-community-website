@@ -382,7 +382,7 @@ function donorReplyHref(x){
   const subject='Re: Your tool donation to Newbiggin Toolshare';
   const greeting=x?.donorName?'Hello '+String(x.donorName).trim()+',':'Hello,';
   const body=greeting+'\n\n\nKind regards,\nNewbiggin Toolshare\nElizabethan Hall';
-  return 'mailto:'+encodeURIComponent(email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  return 'https://mail.google.com/mail/?authuser='+encodeURIComponent('newbiggincommunity@gmail.com')+'&view=cm&fs=1&to='+encodeURIComponent(email)+'&su='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
 }
 function donorSubmissionMissing(x){
   const missing=[];
@@ -405,7 +405,7 @@ function renderDonorAdmin(){
     ? '<button class="btn" onclick="approveDonor('+i+')">APPROVE & ADD TO CATALOGUE</button> <button class="btn alt" onclick="rejectDonor('+i+')">REJECT</button>'
     : '<span class="tag">'+x.status+'</span>'+(x.catalogueId?' <span class="tag">✓ In catalogue</span>':'');
    const replyHref=donorReplyHref(x);
-   const donorContact='<p><b>Donor:</b> '+esc(x.donorName||'Not supplied')+' · <b>Email:</b> '+(replyHref?'<a href="'+esc(replyHref)+'">'+esc(x.email)+'</a> <a class="btn alt" style="padding:6px 10px;margin-left:6px" href="'+esc(replyHref)+'">REPLY BY EMAIL</a>':esc(x.email||'Not supplied'))+'</p><p><b>Address:</b> '+esc([x.address,x.town,x.postcode].filter(Boolean).join(', ')||'Not supplied')+'</p>';
+   const donorContact='<p><b>Donor:</b> '+esc(x.donorName||'Not supplied')+' · <b>Email:</b> '+(replyHref?'<a href="'+esc(replyHref)+'" target="_blank" rel="noopener noreferrer">'+esc(x.email)+'</a> <a class="btn alt" style="padding:6px 10px;margin-left:6px" href="'+esc(replyHref)+'" target="_blank" rel="noopener noreferrer">OPEN GMAIL DRAFT</a>':esc(x.email||'Not supplied'))+'</p><p><b>Address:</b> '+esc([x.address,x.town,x.postcode].filter(Boolean).join(', ')||'Not supplied')+'</p>';
    return '<div class="card" style="margin:10px 0"><h3>💚 '+esc(x.name)+'</h3>'+donorContact+'<p><b>'+esc(x.category||'Other')+'</b> · '+esc(x.condition||'Not stated')+'</p><p>'+(esc(x.description)||'No description')+'</p><p><b>Safety:</b> '+(esc(x.safety)||'None stated')+'</p><p><b>Donation status:</b> Tool donated to Elizabethan Hall</p><p>'+actions+'</p></div>';
  }).join('');
 }
@@ -749,7 +749,7 @@ renderTools();
           ? '<span class="tag">REJECTED</span>'
           : (missing.length?'<span class="tag" style="background:#fff3cd;color:#6b4f00">NEEDS DETAILS: '+esc(missing.join(', '))+'</span> ':'')+(missing.length?'':'<button class="btn" data-v10approve="'+i+'">APPROVE & ADD TO CATALOGUE</button> ')+(missing.length?'':'')+'<button class="btn alt" data-v10reject="'+i+'">REJECT</button>';
       const replyHref=donorReplyHref(x);
-      const donorContact='<p><b>Donor:</b> '+esc(x.donorName||'Not supplied')+' · <b>Email:</b> '+(replyHref?'<a href="'+esc(replyHref)+'">'+esc(x.email)+'</a> <a class="btn alt" style="padding:6px 10px;margin-left:6px" href="'+esc(replyHref)+'">REPLY BY EMAIL</a>':esc(x.email||'Not supplied'))+'</p>'+
+      const donorContact='<p><b>Donor:</b> '+esc(x.donorName||'Not supplied')+' · <b>Email:</b> '+(replyHref?'<a href="'+esc(replyHref)+'" target="_blank" rel="noopener noreferrer">'+esc(x.email)+'</a> <a class="btn alt" style="padding:6px 10px;margin-left:6px" href="'+esc(replyHref)+'" target="_blank" rel="noopener noreferrer">OPEN GMAIL DRAFT</a>':esc(x.email||'Not supplied'))+'</p>'+
         '<p><b>Address:</b> '+esc([x.address,x.town,x.postcode].filter(Boolean).join(', ')||'Not supplied')+'</p>';
       return '<div class="card" style="margin:10px 0;border-left:5px solid #2f855a">'+
         '<h3>💚 '+esc(x.name)+'</h3>'+donorContact+
