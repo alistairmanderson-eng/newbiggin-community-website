@@ -1,0 +1,17 @@
+{
+  "name": "newbiggin-toolshare-live",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/toolshare-live.js --bundle --format=iife --target=es2022 --outfile=assets/toolshare-live.js"
+  },
+  "dependencies": {
+    "@netlify/database": "2.0.1",
+    "@netlify/identity": "2.0.1",
+    "nodemailer": "7.0.10"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.11"
+  }
+}
+
