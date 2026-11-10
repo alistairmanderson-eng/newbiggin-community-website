@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function () {
+  var path = window.location.pathname;
+  var hasIdentityToken = /(?:^#|&)(?:invite_token|confirmation_token|recovery_token|email_change_token)=/.test(window.location.hash);
+  if (hasIdentityToken && path !== "/toolshare.html") {
+    window.location.replace("/toolshare.html" + window.location.search + window.location.hash);
+  }
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="description" content="Elizabethan Hall on the Spital Estate, Newbiggin-by-the-Sea. Community events, activities, wood shop, community garden, and local groups.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
