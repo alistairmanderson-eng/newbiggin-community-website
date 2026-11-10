@@ -9,7 +9,8 @@ export default async (request) => {
 
   let body;
   try { body = await request.json(); } catch { return json({ error: "Invalid request." }, 400); }
-  const profile = profileFor(user);
+  const suppliedProfile = body.profile;
+  const profile = validateProfile(suppliedProfile) ? suppliedProfile : profileFor(user);
   if (!validateProfile(profile)) return json({ error: "Complete your address and contact details before paying." }, 400);
 
   const choice = body.contributionAmount;
