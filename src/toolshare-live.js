@@ -1,4 +1,4 @@
-import { getUser, handleAuthCallback, login, logout, signup } from "@netlify/identity";
+import { acceptInvite, getUser, handleAuthCallback, login, logout, requestPasswordRecovery, signup, updateUser } from "@netlify/identity";
 
 const api = async (name, options = {}) => {
   const response = await fetch(`/.netlify/functions/${name}`, {
@@ -22,17 +22,57 @@ if (accountSection) {
   if (card && !byId("liveToolshareAuth")) {
     const auth = document.createElement("div");
     auth.id = "liveToolshareAuth";
-    auth.innerHTML = `<div class="notice" style="margin:12px 0"><b>Member sign in</b><div style="display:grid;gap:8px;margin-top:8px"><label>Email address<br><input id="liveLoginEmail" type="email" autocomplete="username" style="width:100%;padding:10px"></label><label>Password<br><input id="liveLoginPassword" type="password" autocomplete="current-password" style="width:100%;padding:10px"></label><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="liveLoginButton" class="btn">Sign in</button><button id="liveLogoutButton" class="btn alt" type="button">Sign out</button></div></div><p id="liveToolshareStatus" role="status" aria-live="polite"></p></div>`;
+    auth.innerHTML = `<div class="notice" style="margin:12px 0"><b>Member sign in</b><div style="display:grid;gap:8px;margin-top:8px"><label>Email address<br><input id="liveLoginEmail" type="email" autocomplete="username" style="width:100%;padding:10px"></label><label>Password<br><input id="liveLoginPassword" type="password" autocomplete="current-password" style="width:100%;padding:10px"></label><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="liveLoginButton" class="btn">Sign in</button><button id="liveLogoutButton" class="btn alt" type="button">Sign out</button><button id="liveForgotPassword" class="btn alt" type="button">Forgot password?</button></div></div><div id="liveIdentityAction"></div><p id="liveToolshareStatus" role="status" aria-live="polite"></p></div>`;
     card.insertBefore(auth, card.children[1] || null);
     byId("liveLoginButton").onclick = async () => {
       try { await login(byId("liveLoginEmail").value.trim(), byId("liveLoginPassword").value); const membership = await refreshMember(); const pending = localStorage.getItem("toolsharePendingContribution"); if (membership?.member?.membershipStatus !== "active" && pending !== null) await startCheckout(Number(pending)); }
       catch (error) { statusText(error.message || "Sign in failed.", true); }
+    };
+    byId("liveForgotPassword").onclick = async () => {
+      const email = byId("liveLoginEmail").value.trim();
+      if (!email) { statusText("Enter your account email above, then choose Forgot password?", true); byId("liveLoginEmail").focus(); return; }
+      try { await requestPasswordRecovery(email); statusText("If an account matches that email, Netlify has sent a password reset link. Check your inbox and spam folder."); }
+      catch (error) { statusText(error.message || "We could not request a password reset. Please try again.", true); }
     };
     byId("liveLogoutButton").onclick = async () => {
       await logout(); statusText("You are signed out.");
       byId("accountMembership").textContent = "Sign in to view your membership.";
     };
   }
+}
+
+function showIdentityPasswordForm(mode, token) {
+  show("account");
+  const host = byId("liveIdentityAction");
+  if (!host) return;
+  const isInvite = mode === "invite";
+  host.innerHTML = `<div class="card" style="margin-top:12px"><h3>${isInvite ? "Accept your Toolshare invitation" : "Choose a new password"}</h3><p>${isInvite ? "Set a password to activate your account." : "Enter a new password for your Toolshare account."}</p>${isInvite ? '<label>Email address<br><input id="liveInviteEmail" type="email" autocomplete="email" style="width:100%;padding:10px"></label>' : ""}<label>New password<br><input id="liveNewPassword" type="password" autocomplete="new-password" minlength="8" style="width:100%;padding:10px"></label><label>Confirm new password<br><input id="liveConfirmPassword" type="password" autocomplete="new-password" minlength="8" style="width:100%;padding:10px"></label><button id="liveSavePassword" class="btn" type="button">${isInvite ? "Accept invitation" : "Save new password"}</button></div>`;
+  byId("liveSavePassword").onclick = async () => {
+    const password = byId("liveNewPassword").value;
+    const confirmation = byId("liveConfirmPassword").value;
+    if (password.length < 8) { statusText("Choose a password with at least 8 characters.", true); return; }
+    if (password !== confirmation) { statusText("The passwords do not match. Please enter them again.", true); return; }
+    const button = byId("liveSavePassword");
+    button.disabled = true;
+    try {
+      if (isInvite) {
+        const email = byId("liveInviteEmail").value.trim();
+        if (!email) { statusText("Enter the email address the invitation was sent to.", true); button.disabled = false; return; }
+        await acceptInvite(token, password);
+        await login(email, password);
+        statusText("Invitation accepted. You are signed in; choose Admin in the menu to open Hall Admin.");
+      } else {
+        await updateUser({ password });
+        statusText("Password updated. You are signed in; choose Admin in the menu to open Hall Admin.");
+      }
+      byId("accountName").textContent = "Welcome to Newbiggin Toolshare.";
+      byId("accountMembership").textContent = "Your account is ready.";
+      host.innerHTML = "";
+    } catch (error) {
+      statusText(error.message || "The password could not be updated. Please request a fresh email link and try again.", true);
+      button.disabled = false;
+    }
+  };
 }
 
 function updateFirstVisitInstructions() {
@@ -132,7 +172,16 @@ window.addEventListener("DOMContentLoaded", async () => {
   updateFirstVisitInstructions();
   const textObserver = new MutationObserver(updateFirstVisitInstructions);
   textObserver.observe(document.body, { childList: true, subtree: true });
-  try { await handleAuthCallback(); } catch (error) { statusText(error.message || "Account link could not be completed.", true); }
+  let authCallback;
+  try { authCallback = await handleAuthCallback(); } catch (error) { statusText(error.message || "Account link could not be completed.", true); }
+  if (authCallback?.type === "invite" && authCallback.token) {
+    showIdentityPasswordForm("invite", authCallback.token);
+  } else if (authCallback?.type === "recovery") {
+    showIdentityPasswordForm("recovery");
+  } else if (authCallback?.type === "confirmation") {
+    show("account");
+    statusText("Your email is confirmed. Sign in here to continue.");
+  }
   try { await refreshMember(); } catch (error) { console.warn("Membership status is temporarily unavailable."); }
   const url = new URL(location.href);
   if (url.searchParams.get("payment") === "return" && url.searchParams.has("ref")) {
