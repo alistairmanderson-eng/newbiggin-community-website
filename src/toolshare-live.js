@@ -144,14 +144,18 @@ async function startCheckout(contributionAmount) {
   window.location.assign(result.checkoutUrl);
 }
 function updateMembershipNavigation(isActive) {
-  const joinNav = [...document.querySelectorAll("nav button")]
-    .find((button) => button.getAttribute("onclick") === "show('join')");
-  if (joinNav) joinNav.hidden = Boolean(isActive);
-  const homeJoin = [...document.querySelectorAll("#home button")]
-    .find((button) => button.getAttribute("onclick") === "show('join')");
-  if (homeJoin) {
-    homeJoin.textContent = isActive ? "MY MEMBERSHIP" : "JOIN TOOLSHARE";
-    homeJoin.setAttribute("onclick", isActive ? "show('account')" : "show('join')");
+  const joinButtons = [...document.querySelectorAll("button")]
+    .filter((button) => button.getAttribute("onclick") === "show('join')");
+  for (const button of joinButtons) {
+    if (button.closest("nav")) {
+      button.hidden = Boolean(isActive);
+    } else if (isActive) {
+      button.textContent = "MY MEMBERSHIP";
+      button.setAttribute("onclick", "show('account')");
+    } else {
+      button.textContent = "JOIN TOOLSHARE";
+      button.setAttribute("onclick", "show('join')");
+    }
   }
 }
 async function refreshMember() {
