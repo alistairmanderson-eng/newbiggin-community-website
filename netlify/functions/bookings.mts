@@ -7,7 +7,7 @@ const mapBooking = (row) => {
   const days = Math.max(1, (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000 + 1);
   return {
     id: row.id, toolId: row.tool_id, toolName: row.tool_name, start, end, days,
-    rate: Number(row.daily_rate), total: Number(row.total_amount), status: row.booking_status,
+    rate: Number(row.daily_rate), weeklyRate: row.weekly_rate === null || row.weekly_rate === undefined ? null : Number(row.weekly_rate), total: Number(row.total_amount), status: row.booking_status,
     collectionStatus: row.collection_status, paymentStatus: row.hire_payment_status, email: row.email,
   };
 };
@@ -44,7 +44,7 @@ export default async (request) => {
     if (start < today || (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000 > 30) {
       return json({ error: "Choose a future date and a booking of no more than 31 days." }, 400);
     }
-    const tools = await db.sql`SELECT name, daily_rate FROM toolshare_catalogue WHERE tool_id=${toolId} AND active=TRUE LIMIT 1`;
+    const tools = await db.sql`SELECT name, daily_rate, weekly_rate FROM toolshare_catalogue WHERE tool_id=${toolId} AND active=TRUE LIMIT 1`;
     if (!tools[0]) return json({ error: "That tool is unavailable. Refresh the catalogue and try again." }, 404);
     const rate = Number(tools[0].daily_rate);
     const conflict = await db.sql`
@@ -54,10 +54,11 @@ export default async (request) => {
     `;
     if (conflict.length) return json({ error: "This tool is already requested for some of those dates. Choose another date range." }, 409);
     const days = Math.max(1, (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000 + 1);
-    const total = Math.round(days * rate * 100) / 100;
+    const weeklyRate = tools[0].weekly_rate === null ? null : Number(tools[0].weekly_rate);
+    const total = Math.round((weeklyRate === null ? days * rate : Math.floor(days / 7) * weeklyRate + (days % 7) * rate) * 100) / 100;
     const rows = await db.sql`
-      INSERT INTO toolshare_bookings (id, identity_user_id, tool_id, tool_name, daily_rate, start_date, end_date, total_amount)
-      VALUES (${id}, ${String(user.id)}, ${toolId}, ${tools[0].name}, ${rate}, ${start}, ${end}, ${total})
+      INSERT INTO toolshare_bookings (id, identity_user_id, tool_id, tool_name, daily_rate, weekly_rate, start_date, end_date, total_amount)
+      VALUES (${id}, ${String(user.id)}, ${toolId}, ${tools[0].name}, ${rate}, ${weeklyRate}, ${start}, ${end}, ${total})
       RETURNING *, NULL::text AS email
     `;
     return json({ booking: mapBooking(rows[0]) }, 201);

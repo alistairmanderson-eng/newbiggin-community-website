@@ -12,7 +12,7 @@ export const requireUser = async () => {
 };
 export const isAdmin = (user) => {
   const roles = user?.roles || user?.appMetadata?.roles || user?.app_metadata?.roles || [];
-  return Array.isArray(roles) && roles.includes("admin");
+  return Array.isArray(roles) && roles.some((role) => String(role).trim().toLowerCase() === "admin");
 };
 export const profileFor = (user) => {
   const metadata = user.userMetadata ?? user.user_metadata ?? {};

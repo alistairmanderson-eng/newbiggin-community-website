@@ -1,5 +1,6 @@
 import { acceptInvite, getUser, handleAuthCallback, login, logout, requestPasswordRecovery, signup, updateUser } from "@netlify/identity";
 
+import { catalogueImportMarkup, initCatalogueImport } from "./catalogue-import.js";
 const api = async (name, options = {}) => {
   const response = await fetch(`/.netlify/functions/${name}`, {
     credentials: "same-origin",
@@ -8,7 +9,11 @@ const api = async (name, options = {}) => {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "The request could not be completed.");
+  if (!response.ok) {
+    const labels = { firstName: "first name", lastName: "last name", address: "address", town: "town or city", postcode: "postcode", mobile: "mobile number" };
+    const missing = Array.isArray(data.missingFields) ? data.missingFields.map((key) => labels[key] || key) : [];
+    throw new Error(missing.length ? `${data.error || "Complete your details."} Missing: ${missing.join(", ")}.` : data.error || "The request could not be completed.");
+  }
   return data;
 };
 const byId = (id) => document.getElementById(id);
@@ -22,10 +27,10 @@ if (accountSection) {
   if (card && !byId("liveToolshareAuth")) {
     const auth = document.createElement("div");
     auth.id = "liveToolshareAuth";
-    auth.innerHTML = `<div class="notice" style="margin:12px 0"><b>Member sign in</b><div style="display:grid;gap:8px;margin-top:8px"><label>Email address<br><input id="liveLoginEmail" type="email" autocomplete="username" style="width:100%;padding:10px"></label><label>Password<br><input id="liveLoginPassword" type="password" autocomplete="current-password" style="width:100%;padding:10px"></label><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="liveLoginButton" class="btn">Sign in</button><button id="liveLogoutButton" class="btn alt" type="button">Sign out</button><button id="liveForgotPassword" class="btn alt" type="button">Forgot password?</button></div></div><div id="liveIdentityAction"></div><p id="liveToolshareStatus" role="status" aria-live="polite"></p></div>`;
+    auth.innerHTML = `<div class="notice" style="margin:12px 0"><b>Member sign in</b><div style="display:grid;gap:8px;margin-top:8px"><label>Email address<br><input id="liveLoginEmail" type="email" autocomplete="username" style="width:100%;padding:10px"></label><label>Password<br><input id="liveLoginPassword" type="password" autocomplete="current-password" style="width:100%;padding:10px"></label><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="liveLoginButton" class="btn">Sign in</button><button id="liveLogoutButton" class="btn alt" type="button">Sign out</button><button id="liveForgotPassword" class="btn alt" type="button">Forgot password?</button><button id="liveContinuePayment" class="btn" type="button" hidden>Continue to secure payment</button></div></div><div id="liveMembershipProfile" class="card" style="margin-top:12px" hidden><h3>Membership details</h3><p>These details need to be saved to your account before payment. If you already entered them during sign-up, they will be carried over when available.</p><label>First name<br><input id="liveProfileFirstName" autocomplete="given-name" required></label><label>Last name<br><input id="liveProfileLastName" autocomplete="family-name" required></label><label>Address<br><input id="liveProfileAddress" autocomplete="street-address" required></label><label>Town or city<br><input id="liveProfileTown" autocomplete="address-level2" required></label><label>Postcode<br><input id="liveProfilePostcode" autocomplete="postal-code" required></label><label>Mobile number<br><input id="liveProfileMobile" type="tel" autocomplete="tel" required></label><button id="liveSaveMembershipProfile" class="btn" type="button">Save details to my account</button></div><div id="liveIdentityAction"></div><p id="liveToolshareStatus" role="status" aria-live="polite"></p></div>`;
     card.insertBefore(auth, card.children[1] || null);
     byId("liveLoginButton").onclick = async () => {
-      try { await login(byId("liveLoginEmail").value.trim(), byId("liveLoginPassword").value); const membership = await refreshMember(); const pending = localStorage.getItem("toolsharePendingContribution"); if (membership?.member?.membershipStatus !== "active" && pending !== null) await startCheckout(Number(pending)); }
+      try { await login(byId("liveLoginEmail").value.trim(), byId("liveLoginPassword").value); const membership = await refreshMember(); const pending = localStorage.getItem("toolsharePendingContribution"); if (!membership?.staff && membership?.member?.membershipStatus !== "active" && pending !== null) await startCheckout(Number(pending)); }
       catch (error) { statusText(error.message || "Sign in failed.", true); }
     };
     byId("liveForgotPassword").onclick = async () => {
@@ -33,6 +38,29 @@ if (accountSection) {
       if (!email) { statusText("Enter your account email above, then choose Forgot password?", true); byId("liveLoginEmail").focus(); return; }
       try { await requestPasswordRecovery(email); statusText("If an account matches that email, Netlify has sent a password reset link. Check your inbox and spam folder."); }
       catch (error) { statusText(error.message || "We could not request a password reset. Please try again.", true); }
+    };
+    byId("liveSaveMembershipProfile").onclick = async () => {
+      const profile = {
+        firstName: byId("liveProfileFirstName").value.trim(),
+        lastName: byId("liveProfileLastName").value.trim(),
+        address: byId("liveProfileAddress").value.trim(),
+        town: byId("liveProfileTown").value.trim(),
+        postcode: byId("liveProfilePostcode").value.trim().toUpperCase(),
+        mobile: byId("liveProfileMobile").value.trim(),
+      };
+      if (!validProfile(profile)) { statusText("Complete every membership detail before saving.", true); return; }
+      const button = byId("liveSaveMembershipProfile");
+      button.disabled = true;
+      try {
+        const user = await getUser();
+        if (!user) throw new Error("Please sign in again to save your membership details.");
+        const existingData = user.userMetadata || user.user_metadata || {};
+        await updateUser({ data: { ...existingData, full_name: `${profile.firstName} ${profile.lastName}`, toolshareProfile: profile } });
+        await refreshMember();
+        statusText("Your membership details are saved. Continue to secure payment when ready.");
+      } catch (error) {
+        statusText(error.message || "Your membership details could not be saved. Please try again.", true);
+      } finally { button.disabled = false; }
     };
     byId("liveLogoutButton").onclick = async () => {
       await logout(); statusText("You are signed out.");
@@ -102,28 +130,93 @@ function readProfile() {
   };
 }
 function validProfile(profile) {
-  return Object.values(profile).every(Boolean);
+  const required = ["firstName", "lastName", "address", "town", "postcode", "mobile"];
+  return Boolean(profile && typeof profile === "object" && required.every((key) =>
+    typeof profile[key] === "string" && profile[key].trim().length > 0
+  ));
 }
 async function startCheckout(contributionAmount) {
+  const user = await getUser();
+  const profile = user?.userMetadata?.toolshareProfile || user?.user_metadata?.toolshareProfile || readProfile();
   const result = await api("start-membership-checkout", {
-    method: "POST", body: JSON.stringify({ contributionAmount }),
+    method: "POST", body: JSON.stringify({ contributionAmount, profile }),
   });
   window.location.assign(result.checkoutUrl);
+}
+function updateMembershipNavigation(isActive, isAdmin = false) {
+  const joinButtons = [...document.querySelectorAll("button")]
+    .filter((button) => button.getAttribute("onclick") === "show('join')");
+  for (const button of joinButtons) {
+    if (button.closest("nav")) {
+      button.hidden = Boolean(isActive);
+    } else if (isActive) {
+      button.textContent = isAdmin ? "HALL ADMIN" : "MY MEMBERSHIP";
+      button.setAttribute("onclick", isAdmin ? "show('admin')" : "show('account')");
+    } else {
+      button.textContent = "JOIN TOOLSHARE";
+      button.setAttribute("onclick", "show('join')");
+    }
+  }
 }
 async function refreshMember() {
   const user = await getUser();
   if (!user) {
+    updateMembershipNavigation(false);
     byId("accountMembership").textContent = "Sign in to view your membership.";
+    if (byId("liveMembershipProfile")) byId("liveMembershipProfile").hidden = true;
+    if (byId("liveContinuePayment")) byId("liveContinuePayment").hidden = true;
     return null;
   }
   byId("accountName").textContent = `Welcome, ${user.name || user.email}!`;
+  if (staffUser(user)) {
+    updateMembershipNavigation(true, true);
+    if (byId("liveMembershipProfile")) byId("liveMembershipProfile").hidden = true;
+    if (byId("liveContinuePayment")) byId("liveContinuePayment").hidden = true;
+    byId("accountMembership").textContent = "Hall admin account — no membership payment required.";
+    statusText("You’re signed in as Hall Admin. Choose Hall Admin in the menu to manage Toolshare.");
+    return { staff: true };
+  }
   const result = await api("my-membership");
-  if (result.member?.membershipStatus === "active") {
+  const paymentButton = byId("liveContinuePayment");
+  const profileForm = byId("liveMembershipProfile");
+  const storedProfile = user.userMetadata?.toolshareProfile || user.user_metadata?.toolshareProfile || {};
+  const enteredProfile = readProfile();
+  const hasSavedProfile = validProfile(storedProfile);
+  const formProfile = hasSavedProfile ? storedProfile : validProfile(enteredProfile) ? enteredProfile : {};
+  if (profileForm) {
+    profileForm.hidden = hasSavedProfile;
+    byId("liveProfileFirstName").value = formProfile.firstName || "";
+    byId("liveProfileLastName").value = formProfile.lastName || "";
+    byId("liveProfileAddress").value = formProfile.address || "";
+    byId("liveProfileTown").value = formProfile.town || "";
+    byId("liveProfilePostcode").value = formProfile.postcode || "";
+    byId("liveProfileMobile").value = formProfile.mobile || "";
+  }
+  const isActiveMember = result.member?.membershipStatus === "active";
+  updateMembershipNavigation(isActiveMember);
+  if (isActiveMember) {
+    if (paymentButton) paymentButton.hidden = true;
+    if (profileForm) profileForm.hidden = true;
     byId("accountMembership").textContent = `Universal membership — £30 per year · active until ${new Date(result.member.expiresAt).toLocaleDateString("en-GB")}`;
     statusText("Your membership is active.");
   } else {
     byId("accountMembership").textContent = "Your membership is awaiting payment confirmation.";
-    statusText("Your account is signed in. Complete payment to activate your membership.");
+    if (hasSavedProfile) statusText("Your account is signed in. Complete payment to activate your membership.");
+    else statusText("Your account is signed in. Complete the membership details below so they can be saved to your account.");
+    if (paymentButton) {
+      const savedContribution = localStorage.getItem("toolsharePendingContribution");
+      const contribution = savedContribution === null ? 0 : Number(savedContribution);
+      paymentButton.textContent = `Continue to secure payment — £${(30 + (Number.isFinite(contribution) ? contribution : 0)).toFixed(2)}`;
+      paymentButton.hidden = !hasSavedProfile;
+      paymentButton.onclick = async () => {
+        paymentButton.disabled = true;
+        try { await startCheckout(Number.isFinite(contribution) ? contribution : 0); }
+        catch (error) {
+          statusText(error.message || "Checkout could not be started. Please try again.", true);
+          paymentButton.disabled = false;
+        }
+      };
+    }
   }
   return result;
 }
@@ -225,7 +318,10 @@ if (typeof originalBookingForm === "function") {
 
 const h = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
 const gbp = (v) => `£${Number(v || 0).toFixed(2)}`;
-const staffUser = (u) => u?.roles?.includes("admin") || u?.appMetadata?.roles?.includes("admin") || u?.app_metadata?.roles?.includes("admin");
+const staffUser = (u) => {
+  const roles = u?.roles || u?.appMetadata?.roles || u?.app_metadata?.roles || [];
+  return Array.isArray(roles) && roles.some((role) => String(role).trim().toLowerCase() === "admin");
+};
 
 let liveTools = [];
 function renderLiveCatalogue() {
@@ -233,9 +329,9 @@ function renderLiveCatalogue() {
   const category=byId("cat"), search=byId("v12SearchInput"), query=(search?.value||byId("search")?.value||"").trim().toLowerCase();
   const selected=category?.value||"";
   if(category){const categories=[...new Set(liveTools.map(t=>t.category).filter(Boolean))].sort();const value=selected;category.innerHTML='<option value="">All categories</option>'+categories.map(c=>`<option value="${h(c)}">${h(c)}</option>`).join("");if(categories.includes(value))category.value=value;}
-  const matches=liveTools.filter(t=>(!selected||t.category===selected)&&`${t.name} ${t.category} ${t.notes} ${t.safety}`.toLowerCase().includes(query));
+  const matches=liveTools.filter(t=>(!selected||t.category===selected)&&`${t.name} ${t.category} ${t.notes} ${t.safety} ${t.suitableUses||""} ${t.additionalItems||""}`.toLowerCase().includes(query));
   window.renderTools=renderLiveCatalogue;
-  box.innerHTML=matches.length?matches.map(t=>`<div class="card tool"><div class="pic">${h(t.icon||"🛠️")}</div><div><div class="row"><h3>${h(t.name)}</h3><span class="tag">${t.type==="Community"?"💚 Pass-On Tool":"🏛️ Hall Tool"}</span></div><span class="tag">${h(t.category)}</span> <span class="tag">£${Number(t.rate||0).toFixed(2)}/day</span><p class="muted">${h(t.condition||"Condition checked at collection")} · Collection at Elizabethan Hall</p>${t.notes?`<p>${h(t.notes)}</p>`:""}${t.safety?`<p><b>Safety:</b> ${h(t.safety)}</p>`:""}<button type="button" class="btn" data-live-borrow="${h(t.id)}">View & borrow</button></div></div>`).join(""):'<div class="card">No tools found.</div>';
+  box.innerHTML=matches.length?matches.map(t=>`<div class="card tool"><div class="pic">${h(t.icon||"🛠️")}</div><div><div class="row"><h3>${h(t.name)}</h3><span class="tag">${t.type==="Community"?"💚 Pass-On Tool":"🏛️ Hall Tool"}</span></div><span class="tag">${h(t.category)}</span> <span class="tag">£${Number(t.rate||0).toFixed(2)}/day</span>${t.weeklyRate===null||t.weeklyRate===undefined?"":` <span class="tag">£${Number(t.weeklyRate).toFixed(2)}/week</span>`}<p class="muted">${h(t.condition||"Condition checked at collection")} · Collection at Elizabethan Hall</p>${t.notes?`<p>${h(t.notes)}</p>`:""}${t.suitableUses?`<p><b>Suitable uses:</b> ${h(t.suitableUses)}</p>`:""}${t.additionalItems?`<p><b>Additional items:</b> ${h(t.additionalItems)}</p>`:""}${t.safety?`<p><b>Safety:</b> ${h(t.safety)}</p>`:""}<button type="button" class="btn" data-live-borrow="${h(t.id)}">View & borrow</button></div></div>`).join(""):'<div class="card">No tools found.</div>';
   for(const button of box.querySelectorAll("[data-live-borrow]")){button.onclick=()=>{const tool=liveTools.find(t=>String(t.id)===button.dataset.liveBorrow);if(tool&&typeof window.showV14Booking==="function")window.showV14Booking(tool);else alert("Booking is temporarily unavailable. Please refresh and try again.");};}
 }
 async function loadCatalogue() {
@@ -282,9 +378,9 @@ async function renderLiveDonations(){
 window.approveLiveDonation=async id=>{const rate=prompt("Set the daily hire rate for this tool (£ per day):","2");if(rate===null)return;try{await api("donations",{method:"PATCH",body:JSON.stringify({id,action:"approve",dailyRate:rate})});await loadCatalogue();await renderLiveDonations();alert("Approved and added to the shared catalogue.")}catch(e){alert(e.message||"Could not approve this tool.")}};
 window.rejectLiveDonation=async id=>{if(!confirm("Reject this submission?"))return;try{await api("donations",{method:"PATCH",body:JSON.stringify({id,action:"reject"})});await renderLiveDonations()}catch(e){alert(e.message||"Could not reject this submission.")}};
 async function findStaffBooking(ref,target){const box=byId(target);if(!box)return;try{const {bookings}=await api(`bookings?ref=${encodeURIComponent(ref)}`);const b=bookings[0];if(!b){box.textContent="Booking not found. Check the reference.";return;}const action=b.collectionStatus==="awaiting_collection"?"collect":b.collectionStatus==="collected"?"return":"";box.innerHTML=`<div class="card"><h3>${h(b.toolName)}</h3><p>Reference ${h(b.id)} · Member ${h(b.email)}</p><p>Collection ${h(b.start)} · Return ${h(b.end)} · Hire ${gbp(b.total)}</p><p>${h(b.collectionStatus)} · ${h(b.paymentStatus)}</p>${action?`<button id="staffRecordAction" class="btn">${action==="collect"?"Record collection and payment":"Record return"}</button>`:""}</div>`;if(action)byId("staffRecordAction").onclick=async()=>{try{await api("bookings",{method:"PATCH",body:JSON.stringify({id:b.id,action})});await findStaffBooking(b.id,target)}catch(e){box.insertAdjacentText("afterbegin",e.message)}}}catch(e){box.textContent=e.message||"Staff sign-in is required."}}
-async function showAdmin(){const user=await getUser();if(!staffUser(user)){window.show("account");statusText("Hall Admin is restricted to staff accounts. Sign in with an account assigned the admin role.",true);return;}const gate=byId("adminLoginBox");if(gate)gate.remove();const dash=byId("adminDashboard");if(dash)dash.remove();window.__toolshareOriginalShow?.("admin");const page=byId("admin");page.innerHTML='<h2>Hall Admin</h2><p>Shared membership, payment, booking and donation records.</p><div class="grid"><div class="card"><h3 id="liveMembers">—</h3><p>Active members</p></div><div class="card"><h3 id="liveIncome">—</h3><p>Confirmed membership income</p></div><div class="card"><h3 id="liveForward">—</h3><p>Confirmed Pay It Forward</p></div><div class="card"><h3 id="liveOut">—</h3><p>Tools out</p></div></div><div class="card"><h3>Pass-on tool submissions</h3><div id="donorAdminList">Loading…</div></div><div class="card"><h3>Collection and return</h3><input id="liveStaffRef" placeholder="Booking reference"><button id="liveStaffFind" class="btn">Find booking</button><div id="liveStaffResult"></div></div><button id="liveAdminSignOut" class="btn alt">Sign out</button>';try{const {report:r}=await api("admin-data");byId("liveMembers").textContent=r.active_members||0;byId("liveIncome").textContent=gbp(r.membership_income);byId("liveForward").textContent=gbp(r.contributions);byId("liveOut").textContent=r.tools_out||0;await renderLiveDonations()}catch(e){statusText(e.message||"Admin data could not be loaded.",true)}byId("liveStaffFind").onclick=()=>findStaffBooking(byId("liveStaffRef").value.trim(),"liveStaffResult");byId("liveAdminSignOut").onclick=async()=>{await logout();window.show("home")};if(byId("staffFindBooking"))byId("staffFindBooking").onclick=()=>findStaffBooking(byId("staffBookingRef")?.value.trim()||"","staffBookingResult");if(byId("staffFindReturn"))byId("staffFindReturn").onclick=()=>findStaffBooking(byId("staffReturnRef")?.value.trim()||"","staffReturnResult")}
+async function showAdmin(){const user=await getUser();if(!staffUser(user)){window.show("account");statusText("Hall Admin is restricted to staff accounts. Sign in with an account assigned the admin role.",true);return;}const gate=byId("adminLoginBox");if(gate)gate.remove();const dash=byId("adminDashboard");if(dash)dash.remove();window.__toolshareOriginalShow?.("admin");const page=byId("admin");page.innerHTML=`<h2>Hall Admin</h2><p>Shared membership, payment, booking and donation records.</p><div class="grid"><div class="card"><h3 id="liveMembers">—</h3><p>Active members</p></div><div class="card"><h3 id="liveIncome">—</h3><p>Confirmed membership income</p></div><div class="card"><h3 id="liveForward">—</h3><p>Confirmed Pay It Forward</p></div><div class="card"><h3 id="liveOut">—</h3><p>Tools out</p></div></div>${catalogueImportMarkup}<div class="card"><h3>Pass-on tool submissions</h3><div id="donorAdminList">Loading…</div></div><div class="card"><h3>Collection and return</h3><input id="liveStaffRef" placeholder="Booking reference"><button id="liveStaffFind" class="btn">Find booking</button><div id="liveStaffResult"></div></div><button id="liveAdminSignOut" class="btn alt">Sign out</button>`;try{const {report:r}=await api("admin-data");byId("liveMembers").textContent=r.active_members||0;byId("liveIncome").textContent=gbp(r.membership_income);byId("liveForward").textContent=gbp(r.contributions);byId("liveOut").textContent=r.tools_out||0;await renderLiveDonations();await initCatalogueImport({api,onPublished:loadCatalogue})}catch(e){statusText(e.message||"Admin data could not be loaded.",true)}byId("liveStaffFind").onclick=()=>findStaffBooking(byId("liveStaffRef").value.trim(),"liveStaffResult");byId("liveAdminSignOut").onclick=async()=>{await logout();window.show("home")};if(byId("staffFindBooking"))byId("staffFindBooking").onclick=()=>findStaffBooking(byId("staffBookingRef")?.value.trim()||"","staffBookingResult");if(byId("staffFindReturn"))byId("staffFindReturn").onclick=()=>findStaffBooking(byId("staffReturnRef")?.value.trim()||"","staffReturnResult")}
 const savedShow=window.show;window.__toolshareOriginalShow=savedShow;window.show=async function(id){if(id==="admin"){await showAdmin();return}if(id==="borrow"){try{await loadCatalogue()}catch(e){alert(e.message||"The shared catalogue is temporarily unavailable.")}return savedShow.call(this,id)}savedShow.call(this,id);if(id==="loans")await renderLiveLoans();if(id==="account")try{await refreshMember()}catch{}};
 window.renderDonorAdmin=renderLiveDonations;window.renderLoans=renderLiveLoans;
 const savedBookingForm=window.showV14Booking;if(typeof savedBookingForm==="function")window.showV14Booking=async function(tool){try{const m=await api("my-membership");if(m.member?.membershipStatus!=="active"){alert("Sign in and complete your annual membership payment before booking tools.");window.show("account");return}await savedBookingForm.call(this,tool);const button=byId("v14Confirm");if(!button)return;button.onclick=async()=>{const start=byId("v14Start")?.value,end=byId("v14End")?.value;if(!start||!end||end<start){if(byId("v14Error"))byId("v14Error").textContent="Choose valid collection and return dates.";return}const suffix=Array.from(crypto.getRandomValues(new Uint8Array(5)),n=>(n%36).toString(36)).join("").toUpperCase(),id=`TS-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${suffix}`;button.disabled=true;try{const {booking:b}=await api("bookings",{method:"POST",body:JSON.stringify({id,toolId:tool.id,start,end})});const qr=encodeURIComponent(JSON.stringify({v:1,id:b.id,tool:b.toolName,start:b.start,end:b.end,total:b.total}));byId("toolList").innerHTML=`<div class="card"><h2>✅ Booking request created</h2><p><b>${h(b.toolName)}</b></p><p>Collection ${h(b.start)} · Return ${h(b.end)}</p><p>Hire ${gbp(b.total)} (${b.days} day${b.days===1?"":"s"})</p><p>Bring your booking confirmation and photo ID for your first collection.</p><div class="card"><h3>Toolshare Collection Pass</h3><b>${h(b.id)}</b><br><img width="220" height="220" alt="Booking QR code" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${qr}"><p>Hire payment: cash or card at collection.</p></div><button class="btn" onclick="show('loans')">View my bookings</button></div>`}catch(e){if(byId("v14Error"))byId("v14Error").textContent=e.message||"The booking could not be saved.";button.disabled=false}}}catch(e){alert(e.message||"Sign in and complete your membership before booking tools.");window.show("account")}};
-window.addEventListener("DOMContentLoaded",()=>{addDonorFields();byId("adminLoginBox")?.remove();byId("adminDashboard")?.remove();const b=[...document.querySelectorAll("button")].find(x=>x.textContent.trim()==="Admin");if(b)b.onclick=()=>window.show("admin")});
+window.addEventListener("DOMContentLoaded",()=>{addDonorFields();byId("adminLoginBox")?.remove();byId("adminDashboard")?.remove();const b=[...document.querySelectorAll("button")].find(x=>x.textContent.trim()==="Admin");if(b)b.onclick=()=>window.show("admin");const loans=[...document.querySelectorAll("button")].find(x=>x.textContent.trim()==="My Loans");if(loans&&!byId("liveAccountNavButton")){const account=document.createElement("button");account.id="liveAccountNavButton";account.type="button";account.className=loans.className;account.textContent="My Account";account.onclick=()=>window.show("account");loans.after(account)}});
 
