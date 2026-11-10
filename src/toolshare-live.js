@@ -129,8 +129,10 @@ function validProfile(profile) {
   return Object.values(profile).every(Boolean);
 }
 async function startCheckout(contributionAmount) {
+  const user = await getUser();
+  const profile = user?.userMetadata?.toolshareProfile || user?.user_metadata?.toolshareProfile || readProfile();
   const result = await api("start-membership-checkout", {
-    method: "POST", body: JSON.stringify({ contributionAmount }),
+    method: "POST", body: JSON.stringify({ contributionAmount, profile }),
   });
   window.location.assign(result.checkoutUrl);
 }
