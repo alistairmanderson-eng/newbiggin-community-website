@@ -9,9 +9,34 @@ export default async (request) => {
 
   let body;
   try { body = await request.json(); } catch { return json({ error: "Invalid request." }, 400); }
-  const suppliedProfile = body.profile;
-  const profile = validateProfile(suppliedProfile) ? suppliedProfile : profileFor(user);
-  if (!validateProfile(profile)) return json({ error: "Complete your address and contact details before paying." }, 400);
+  const normaliseProfile = (value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    const pick = (...keys) => {
+      for (const key of keys) {
+        const item = value[key];
+        if (typeof item === "string" && item.trim()) return item.trim();
+      }
+      return "";
+    };
+    return {
+      firstName: pick("firstName", "first_name", "givenName", "given_name"),
+      lastName: pick("lastName", "last_name", "familyName", "family_name"),
+      address: pick("address", "streetAddress", "street_address", "address1", "address_line1"),
+      town: pick("town", "city", "locality"),
+      postcode: pick("postcode", "postalCode", "postal_code", "zip"),
+      mobile: pick("mobile", "mobileNumber", "mobile_number", "phone"),
+    };
+  };
+  const suppliedProfile = normaliseProfile(body.profile);
+  const profile = validateProfile(suppliedProfile) ? suppliedProfile : normaliseProfile(profileFor(user));
+  if (!validateProfile(profile)) {
+    const missingFields = ["firstName", "lastName", "address", "town", "postcode", "mobile"]
+      .filter((key) => !profile[key]);
+    return json({
+      error: "Complete your address and contact details before paying.",
+      missingFields,
+    }, 400);
+  }
 
   const choice = body.contributionAmount;
   const contribution = Number(choice);
