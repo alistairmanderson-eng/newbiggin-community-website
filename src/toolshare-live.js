@@ -9,7 +9,11 @@ const api = async (name, options = {}) => {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) {\n    const labels = { firstName: "first name", lastName: "last name", address: "address", town: "town or city", postcode: "postcode", mobile: "mobile number" };\n    const missing = Array.isArray(data.missingFields) ? data.missingFields.map((key) => labels[key] || key) : [];\n    throw new Error(missing.length ? `${data.error || "Complete your details."} Missing: ${missing.join(", ")}.` : data.error || "The request could not be completed.");\n  }
+  if (!response.ok) {
+    const labels = { firstName: "first name", lastName: "last name", address: "address", town: "town or city", postcode: "postcode", mobile: "mobile number" };
+    const missing = Array.isArray(data.missingFields) ? data.missingFields.map((key) => labels[key] || key) : [];
+    throw new Error(missing.length ? `${data.error || "Complete your details."} Missing: ${missing.join(", ")}.` : data.error || "The request could not be completed.");
+  }
   return data;
 };
 const byId = (id) => document.getElementById(id);
