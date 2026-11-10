@@ -47,6 +47,8 @@ function updateFirstVisitInstructions() {
   if (localNotice) localNotice.innerHTML = "<b>Local membership</b><br>At your first tool collection, bring photo ID (a driving licence or passport) and proof of address, such as a utility bill dated within the last 3 months. Staff will check these at your first visit.";
   const paymentNote = byId("payItForwardPaymentNote");
   if (paymentNote) paymentNote.textContent = "Your selected contribution will be added to your SumUp checkout with the £30 annual membership. Elizabethan Hall allocates sponsored memberships.";
+  const checkoutCopy = [...(byId("signup")?.querySelectorAll("p") || [])].find((p) => p.textContent.includes("After your membership details"));
+  if (checkoutCopy) checkoutCopy.textContent = "When you continue, you will go to secure SumUp checkout for the £30 annual membership plus any Pay It Forward contribution you selected. Your membership activates after SumUp confirms payment. Daily tool hire charges remain separate.";
 }
 
 function readProfile() {
