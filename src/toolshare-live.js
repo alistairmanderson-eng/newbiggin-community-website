@@ -318,7 +318,10 @@ if (typeof originalBookingForm === "function") {
 
 const h = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
 const gbp = (v) => `£${Number(v || 0).toFixed(2)}`;
-const staffUser = (u) => u?.roles?.includes("admin") || u?.appMetadata?.roles?.includes("admin") || u?.app_metadata?.roles?.includes("admin");
+const staffUser = (u) => {
+  const roles = u?.roles || u?.appMetadata?.roles || u?.app_metadata?.roles || [];
+  return Array.isArray(roles) && roles.some((role) => String(role).trim().toLowerCase() === "admin");
+};
 
 let liveTools = [];
 function renderLiveCatalogue() {
