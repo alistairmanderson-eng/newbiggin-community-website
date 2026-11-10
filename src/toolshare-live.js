@@ -30,7 +30,7 @@ if (accountSection) {
     auth.innerHTML = `<div class="notice" style="margin:12px 0"><b>Member sign in</b><div style="display:grid;gap:8px;margin-top:8px"><label>Email address<br><input id="liveLoginEmail" type="email" autocomplete="username" style="width:100%;padding:10px"></label><label>Password<br><input id="liveLoginPassword" type="password" autocomplete="current-password" style="width:100%;padding:10px"></label><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="liveLoginButton" class="btn">Sign in</button><button id="liveLogoutButton" class="btn alt" type="button">Sign out</button><button id="liveForgotPassword" class="btn alt" type="button">Forgot password?</button><button id="liveContinuePayment" class="btn" type="button" hidden>Continue to secure payment</button></div></div><div id="liveMembershipProfile" class="card" style="margin-top:12px" hidden><h3>Membership details</h3><p>These details need to be saved to your account before payment. If you already entered them during sign-up, they will be carried over when available.</p><label>First name<br><input id="liveProfileFirstName" autocomplete="given-name" required></label><label>Last name<br><input id="liveProfileLastName" autocomplete="family-name" required></label><label>Address<br><input id="liveProfileAddress" autocomplete="street-address" required></label><label>Town or city<br><input id="liveProfileTown" autocomplete="address-level2" required></label><label>Postcode<br><input id="liveProfilePostcode" autocomplete="postal-code" required></label><label>Mobile number<br><input id="liveProfileMobile" type="tel" autocomplete="tel" required></label><button id="liveSaveMembershipProfile" class="btn" type="button">Save details to my account</button></div><div id="liveIdentityAction"></div><p id="liveToolshareStatus" role="status" aria-live="polite"></p></div>`;
     card.insertBefore(auth, card.children[1] || null);
     byId("liveLoginButton").onclick = async () => {
-      try { await login(byId("liveLoginEmail").value.trim(), byId("liveLoginPassword").value); const membership = await refreshMember(); const pending = localStorage.getItem("toolsharePendingContribution"); if (membership?.member?.membershipStatus !== "active" && pending !== null) await startCheckout(Number(pending)); }
+      try { await login(byId("liveLoginEmail").value.trim(), byId("liveLoginPassword").value); const membership = await refreshMember(); const pending = localStorage.getItem("toolsharePendingContribution"); if (!membership?.staff && membership?.member?.membershipStatus !== "active" && pending !== null) await startCheckout(Number(pending)); }
       catch (error) { statusText(error.message || "Sign in failed.", true); }
     };
     byId("liveForgotPassword").onclick = async () => {
@@ -143,15 +143,15 @@ async function startCheckout(contributionAmount) {
   });
   window.location.assign(result.checkoutUrl);
 }
-function updateMembershipNavigation(isActive) {
+function updateMembershipNavigation(isActive, isAdmin = false) {
   const joinButtons = [...document.querySelectorAll("button")]
     .filter((button) => button.getAttribute("onclick") === "show('join')");
   for (const button of joinButtons) {
     if (button.closest("nav")) {
       button.hidden = Boolean(isActive);
     } else if (isActive) {
-      button.textContent = "MY MEMBERSHIP";
-      button.setAttribute("onclick", "show('account')");
+      button.textContent = isAdmin ? "HALL ADMIN" : "MY MEMBERSHIP";
+      button.setAttribute("onclick", isAdmin ? "show('admin')" : "show('account')");
     } else {
       button.textContent = "JOIN TOOLSHARE";
       button.setAttribute("onclick", "show('join')");
@@ -168,6 +168,14 @@ async function refreshMember() {
     return null;
   }
   byId("accountName").textContent = `Welcome, ${user.name || user.email}!`;
+  if (staffUser(user)) {
+    updateMembershipNavigation(true, true);
+    if (byId("liveMembershipProfile")) byId("liveMembershipProfile").hidden = true;
+    if (byId("liveContinuePayment")) byId("liveContinuePayment").hidden = true;
+    byId("accountMembership").textContent = "Hall admin account — no membership payment required.";
+    statusText("You’re signed in as Hall Admin. Choose Hall Admin in the menu to manage Toolshare.");
+    return { staff: true };
+  }
   const result = await api("my-membership");
   const paymentButton = byId("liveContinuePayment");
   const profileForm = byId("liveMembershipProfile");
