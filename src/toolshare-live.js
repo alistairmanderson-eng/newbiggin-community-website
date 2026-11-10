@@ -44,11 +44,11 @@ function updateFirstVisitInstructions() {
     if (next?.classList.contains("muted")) next.remove();
   }
   const localNotice = [...document.querySelectorAll(".notice")].find((el) => el.textContent.includes("Local membership"));
-  if (localNotice) localNotice.innerHTML = "<b>Local membership</b><br>At your first tool collection, bring photo ID (a driving licence or passport) and proof of address, such as a utility bill dated within the last 3 months. Staff will check these at your first visit.";
+  if (localNotice && !localNotice.textContent.includes("At your first tool collection")) localNotice.innerHTML = "<b>Local membership</b><br>At your first tool collection, bring photo ID (a driving licence or passport) and proof of address, such as a utility bill dated within the last 3 months. Staff will check these at your first visit.";
   const paymentNote = byId("payItForwardPaymentNote");
-  if (paymentNote) paymentNote.textContent = "Your selected contribution will be added to your SumUp checkout with the £30 annual membership. Elizabethan Hall allocates sponsored memberships.";
+  if (paymentNote && !paymentNote.textContent.includes("added to your SumUp checkout")) paymentNote.textContent = "Your selected contribution will be added to your SumUp checkout with the £30 annual membership. Elizabethan Hall allocates sponsored memberships.";
   const checkoutCopy = [...(byId("signup")?.querySelectorAll("p") || [])].find((p) => p.textContent.includes("After your membership details"));
-  if (checkoutCopy) checkoutCopy.textContent = "When you continue, you will go to secure SumUp checkout for the £30 annual membership plus any Pay It Forward contribution you selected. Your membership activates after SumUp confirms payment. Daily tool hire charges remain separate.";
+  if (checkoutCopy && !checkoutCopy.textContent.includes("When you continue")) checkoutCopy.textContent = "When you continue, you will go to secure SumUp checkout for the £30 annual membership plus any Pay It Forward contribution you selected. Your membership activates after SumUp confirms payment. Daily tool hire charges remain separate.";
 }
 
 function readProfile() {
@@ -130,6 +130,8 @@ window.createAccount = async function createLiveToolshareAccount() {
 
 window.addEventListener("DOMContentLoaded", async () => {
   updateFirstVisitInstructions();
+  const textObserver = new MutationObserver(updateFirstVisitInstructions);
+  textObserver.observe(document.body, { childList: true, subtree: true });
   try { await handleAuthCallback(); } catch (error) { statusText(error.message || "Account link could not be completed.", true); }
   try { await refreshMember(); } catch (error) { console.warn("Membership status is temporarily unavailable."); }
   const url = new URL(location.href);
