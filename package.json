@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild src/toolshare-live.js --bundle --format=iife --target=es2022 --outfile=assets/toolshare-live.js"
+    "build": "node scripts/build.mjs"
   },
   "dependencies": {
     "@netlify/database": "2.0.1",
