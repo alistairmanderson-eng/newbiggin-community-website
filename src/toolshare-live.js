@@ -178,10 +178,29 @@ const h = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const gbp = (v) => `£${Number(v || 0).toFixed(2)}`;
 const staffUser = (u) => u?.roles?.includes("admin") || u?.appMetadata?.roles?.includes("admin") || u?.app_metadata?.roles?.includes("admin");
 
+let liveTools = [];
+function renderLiveCatalogue() {
+  const box=byId("toolList"); if(!box)return;
+  const category=byId("cat"), search=byId("v12SearchInput"), query=(search?.value||byId("search")?.value||"").trim().toLowerCase();
+  const selected=category?.value||"";
+  if(category){const categories=[...new Set(liveTools.map(t=>t.category).filter(Boolean))].sort();const value=selected;category.innerHTML='<option value="">All categories</option>'+categories.map(c=>`<option value="${h(c)}">${h(c)}</option>`).join("");if(categories.includes(value))category.value=value;}
+  const matches=liveTools.filter(t=>(!selected||t.category===selected)&&`${t.name} ${t.category} ${t.notes} ${t.safety}`.toLowerCase().includes(query));
+  window.renderTools=renderLiveCatalogue;
+  box.innerHTML=matches.length?matches.map(t=>`<div class="card tool"><div class="pic">${h(t.icon||"🛠️")}</div><div><div class="row"><h3>${h(t.name)}</h3><span class="tag">${t.type==="Community"?"💚 Pass-On Tool":"🏛️ Hall Tool"}</span></div><span class="tag">${h(t.category)}</span> <span class="tag">£${Number(t.rate||0).toFixed(2)}/day</span><p class="muted">${h(t.condition||"Condition checked at collection")} · Collection at Elizabethan Hall</p>${t.notes?`<p>${h(t.notes)}</p>`:""}${t.safety?`<p><b>Safety:</b> ${h(t.safety)}</p>`:""}<button type="button" class="btn" data-live-borrow="${h(t.id)}">View & borrow</button></div></div>`).join(""):'<div class="card">No tools found.</div>';
+  for(const button of box.querySelectorAll("[data-live-borrow]")){button.onclick=()=>{const tool=liveTools.find(t=>String(t.id)===button.dataset.liveBorrow);if(tool&&typeof window.showV14Booking==="function")window.showV14Booking(tool);else alert("Booking is temporarily unavailable. Please refresh and try again.");};}
+}
 async function loadCatalogue() {
   const { tools: list } = await api("catalogue");
+  liveTools=list;
   if (Array.isArray(window.tools)) window.tools.splice(0, window.tools.length, ...list);
   localStorage.setItem("toolshareApprovedCatalogue", JSON.stringify(list.filter(x => x.type === "Community")));
+  const search=byId("v12SearchInput"), category=byId("cat");
+  if(search)search.oninput=renderLiveCatalogue;
+  if(category)category.onchange=renderLiveCatalogue;
+  if(byId("v12SearchBtn"))byId("v12SearchBtn").onclick=renderLiveCatalogue;
+  if(byId("v12ClearBtn"))byId("v12ClearBtn").onclick=()=>{if(search)search.value="";if(byId("search"))byId("search").value="";if(category)category.value="";renderLiveCatalogue();};
+  if(byId("search"))byId("search").oninput=renderLiveCatalogue;
+  renderLiveCatalogue();
 }
 async function renderLiveLoans() {
   const box = byId("loanBox"); if (!box) return;
