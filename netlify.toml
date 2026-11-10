@@ -1,0 +1,8 @@
+[build]
+  command = "npm run build"
+  publish = "."
+
+[[edge_functions]]
+  function = "toolshare-inject"
+  path = "/toolshare.html"
+
