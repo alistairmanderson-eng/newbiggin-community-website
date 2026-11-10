@@ -143,9 +143,21 @@ async function startCheckout(contributionAmount) {
   });
   window.location.assign(result.checkoutUrl);
 }
+function updateMembershipNavigation(isActive) {
+  const joinNav = [...document.querySelectorAll("nav button")]
+    .find((button) => button.getAttribute("onclick") === "show('join')");
+  if (joinNav) joinNav.hidden = Boolean(isActive);
+  const homeJoin = [...document.querySelectorAll("#home button")]
+    .find((button) => button.getAttribute("onclick") === "show('join')");
+  if (homeJoin) {
+    homeJoin.textContent = isActive ? "MY MEMBERSHIP" : "JOIN TOOLSHARE";
+    homeJoin.setAttribute("onclick", isActive ? "show('account')" : "show('join')");
+  }
+}
 async function refreshMember() {
   const user = await getUser();
   if (!user) {
+    updateMembershipNavigation(false);
     byId("accountMembership").textContent = "Sign in to view your membership.";
     if (byId("liveMembershipProfile")) byId("liveMembershipProfile").hidden = true;
     if (byId("liveContinuePayment")) byId("liveContinuePayment").hidden = true;
@@ -168,7 +180,9 @@ async function refreshMember() {
     byId("liveProfilePostcode").value = formProfile.postcode || "";
     byId("liveProfileMobile").value = formProfile.mobile || "";
   }
-  if (result.member?.membershipStatus === "active") {
+  const isActiveMember = result.member?.membershipStatus === "active";
+  updateMembershipNavigation(isActiveMember);
+  if (isActiveMember) {
     if (paymentButton) paymentButton.hidden = true;
     if (profileForm) profileForm.hidden = true;
     byId("accountMembership").textContent = `Universal membership — £30 per year · active until ${new Date(result.member.expiresAt).toLocaleDateString("en-GB")}`;
