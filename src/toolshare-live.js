@@ -23,7 +23,7 @@ if (accountSection) {
   if (card && !byId("liveToolshareAuth")) {
     const auth = document.createElement("div");
     auth.id = "liveToolshareAuth";
-    auth.innerHTML = `<div class="notice" style="margin:12px 0"><b>Member sign in</b><div style="display:grid;gap:8px;margin-top:8px"><label>Email address<br><input id="liveLoginEmail" type="email" autocomplete="username" style="width:100%;padding:10px"></label><label>Password<br><input id="liveLoginPassword" type="password" autocomplete="current-password" style="width:100%;padding:10px"></label><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="liveLoginButton" class="btn">Sign in</button><button id="liveLogoutButton" class="btn alt" type="button">Sign out</button><button id="liveForgotPassword" class="btn alt" type="button">Forgot password?</button></div></div><div id="liveIdentityAction"></div><p id="liveToolshareStatus" role="status" aria-live="polite"></p></div>`;
+    auth.innerHTML = `<div class="notice" style="margin:12px 0"><b>Member sign in</b><div style="display:grid;gap:8px;margin-top:8px"><label>Email address<br><input id="liveLoginEmail" type="email" autocomplete="username" style="width:100%;padding:10px"></label><label>Password<br><input id="liveLoginPassword" type="password" autocomplete="current-password" style="width:100%;padding:10px"></label><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="liveLoginButton" class="btn">Sign in</button><button id="liveLogoutButton" class="btn alt" type="button">Sign out</button><button id="liveForgotPassword" class="btn alt" type="button">Forgot password?</button><button id="liveContinuePayment" class="btn" type="button" hidden>Continue to secure payment</button></div></div><div id="liveIdentityAction"></div><p id="liveToolshareStatus" role="status" aria-live="polite"></p></div>`;
     card.insertBefore(auth, card.children[1] || null);
     byId("liveLoginButton").onclick = async () => {
       try { await login(byId("liveLoginEmail").value.trim(), byId("liveLoginPassword").value); const membership = await refreshMember(); const pending = localStorage.getItem("toolsharePendingContribution"); if (membership?.member?.membershipStatus !== "active" && pending !== null) await startCheckout(Number(pending)); }
@@ -119,12 +119,28 @@ async function refreshMember() {
   }
   byId("accountName").textContent = `Welcome, ${user.name || user.email}!`;
   const result = await api("my-membership");
+  const paymentButton = byId("liveContinuePayment");
   if (result.member?.membershipStatus === "active") {
+    if (paymentButton) paymentButton.hidden = true;
     byId("accountMembership").textContent = `Universal membership — £30 per year · active until ${new Date(result.member.expiresAt).toLocaleDateString("en-GB")}`;
     statusText("Your membership is active.");
   } else {
     byId("accountMembership").textContent = "Your membership is awaiting payment confirmation.";
     statusText("Your account is signed in. Complete payment to activate your membership.");
+    if (paymentButton) {
+      const savedContribution = localStorage.getItem("toolsharePendingContribution");
+      const contribution = savedContribution === null ? 0 : Number(savedContribution);
+      paymentButton.textContent = `Continue to secure payment — £${(30 + (Number.isFinite(contribution) ? contribution : 0)).toFixed(2)}`;
+      paymentButton.hidden = false;
+      paymentButton.onclick = async () => {
+        paymentButton.disabled = true;
+        try { await startCheckout(Number.isFinite(contribution) ? contribution : 0); }
+        catch (error) {
+          statusText(error.message || "Checkout could not be started. Please try again.", true);
+          paymentButton.disabled = false;
+        }
+      };
+    }
   }
   return result;
 }
