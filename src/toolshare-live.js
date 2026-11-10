@@ -130,7 +130,10 @@ function readProfile() {
   };
 }
 function validProfile(profile) {
-  return Object.values(profile).every(Boolean);
+  const required = ["firstName", "lastName", "address", "town", "postcode", "mobile"];
+  return Boolean(profile && typeof profile === "object" && required.every((key) =>
+    typeof profile[key] === "string" && profile[key].trim().length > 0
+  ));
 }
 async function startCheckout(contributionAmount) {
   const user = await getUser();
