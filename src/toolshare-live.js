@@ -63,7 +63,7 @@ if (accountSection) {
       } finally { button.disabled = false; }
     };
     byId("liveLogoutButton").onclick = async () => {
-      await logout(); statusText("You are signed out.");
+      await logout(); renderMobileAccountBar(null); statusText("You are signed out.");
       byId("accountMembership").textContent = "Sign in to view your membership.";
     };
   }
@@ -88,10 +88,12 @@ function showIdentityPasswordForm(mode, token) {
         if (!email) { statusText("Enter the email address the invitation was sent to.", true); button.disabled = false; return; }
         await acceptInvite(token, password);
         await login(email, password);
-        statusText("Invitation accepted. You are signed in; choose Admin in the menu to open Hall Admin.");
+        await refreshMember();
+        statusText("Invitation accepted. You are signed in; choose Hall Admin in the menu to open Hall Admin.");
       } else {
         await updateUser({ password });
-        statusText("Password updated. You are signed in; choose Admin in the menu to open Hall Admin.");
+        await refreshMember();
+        statusText("Password updated. You are signed in; choose Hall Admin in the menu to open Hall Admin.");
       }
       byId("accountName").textContent = "Welcome to Newbiggin Toolshare.";
       byId("accountMembership").textContent = "Your account is ready.";
@@ -161,7 +163,9 @@ function updateMembershipNavigation(isActive, isAdmin = false) {
 async function refreshMember() {
   const user = await getUser();
   if (!user) {
+    renderMobileAccountBar(null);
     updateMembershipNavigation(false);
+    if (byId("liveLogoutButton")) byId("liveLogoutButton").hidden = true;
     byId("accountMembership").textContent = "Sign in to view your membership.";
     if (byId("liveMembershipProfile")) byId("liveMembershipProfile").hidden = true;
     if (byId("liveContinuePayment")) byId("liveContinuePayment").hidden = true;
@@ -169,7 +173,9 @@ async function refreshMember() {
   }
   byId("accountName").textContent = `Welcome, ${user.name || user.email}!`;
   if (staffUser(user)) {
+    renderMobileAccountBar(user);
     updateMembershipNavigation(true, true);
+    if (byId("liveLogoutButton")) byId("liveLogoutButton").hidden = false;
     if (byId("liveMembershipProfile")) byId("liveMembershipProfile").hidden = true;
     if (byId("liveContinuePayment")) byId("liveContinuePayment").hidden = true;
     byId("accountMembership").textContent = "Hall admin account — no membership payment required.";
@@ -177,6 +183,8 @@ async function refreshMember() {
     return { staff: true };
   }
   const result = await api("my-membership");
+  renderMobileAccountBar(user);
+  if (byId("liveLogoutButton")) byId("liveLogoutButton").hidden = false;
   const paymentButton = byId("liveContinuePayment");
   const profileForm = byId("liveMembershipProfile");
   const storedProfile = user.userMetadata?.toolshareProfile || user.user_metadata?.toolshareProfile || {};
@@ -323,6 +331,60 @@ const staffUser = (u) => {
   return Array.isArray(roles) && roles.some((role) => String(role).trim().toLowerCase() === "admin");
 };
 
+function renderMobileAccountBar(user) {
+  const bar = byId("toolshareMobileAccountBar");
+  if (!bar) return;
+  const isStaff = staffUser(user);
+  if (!user) {
+    bar.innerHTML = '<button id="mobileToolshareAccount" class="primary" type="button">Sign in / My Account</button><button id="mobileToolshareAdmin" type="button">Hall Admin</button>';
+  } else {
+    bar.innerHTML = '<button id="mobileToolshareAccount" class="primary" type="button">My Account</button>' +
+      (isStaff ? '<button id="mobileToolshareAdmin" type="button">Hall Admin</button>' : '') +
+      '<button id="mobileToolshareSignOut" type="button">Sign out</button>';
+  }
+  byId("mobileToolshareAccount")?.addEventListener("click", () => {
+    window.show("account");
+    window.setTimeout(() => byId("liveLoginEmail")?.focus(), 150);
+  });
+  byId("mobileToolshareAdmin")?.addEventListener("click", () => window.show("admin"));
+  byId("mobileToolshareSignOut")?.addEventListener("click", async () => {
+    try {
+      await logout();
+      renderMobileAccountBar(null);
+      if (byId("accountMembership")) byId("accountMembership").textContent = "Sign in to view your membership.";
+      statusText("You are signed out.");
+      window.show("home");
+    } catch (error) {
+      statusText(error.message || "You could not be signed out. Please try again.", true);
+    }
+  });
+}
+
+function installMobileAccountBar() {
+  if (byId("toolshareMobileAccountBar")) return;
+  const style = document.createElement("style");
+  style.id = "toolshareMobileAccountBarStyles";
+  style.textContent = [
+    "#toolshareMobileAccountBar{display:none}",
+    "@media(max-width:700px){body{padding-bottom:calc(76px + env(safe-area-inset-bottom))!important}#toolshareMobileAccountBar{position:fixed;left:0;right:0;bottom:0;z-index:10001;display:flex;gap:7px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#123d2b;box-shadow:0 -2px 12px #0003}#toolshareMobileAccountBar button{flex:1;min-width:0;min-height:48px;border:0;border-radius:10px;background:#e7efe9;color:#17442f;font-size:13px;line-height:1.15;font-weight:700;padding:8px 5px;cursor:pointer}#toolshareMobileAccountBar button.primary{background:#d3eadb;color:#123d2b}.toolshareStaffScanShortcut{bottom:calc(78px + env(safe-area-inset-bottom))!important}}",
+  ].join("");
+  document.head.appendChild(style);
+  const bar = document.createElement("div");
+  bar.id = "toolshareMobileAccountBar";
+  bar.setAttribute("role", "navigation");
+  bar.setAttribute("aria-label", "Account shortcuts");
+  document.body.appendChild(bar);
+  renderMobileAccountBar(null);
+
+  const liftStaffScanner = () => {
+    const scanner = [...document.querySelectorAll("button")]
+      .find((button) => button.textContent.trim().includes("Staff: Scan Collection Pass"));
+    if (scanner) scanner.classList.add("toolshareStaffScanShortcut");
+  };
+  liftStaffScanner();
+  new MutationObserver(liftStaffScanner).observe(document.body, { childList: true, subtree: true });
+}
+
 let liveTools = [];
 function renderLiveCatalogue() {
   const box=byId("toolList"); if(!box)return;
@@ -378,9 +440,9 @@ async function renderLiveDonations(){
 window.approveLiveDonation=async id=>{const rate=prompt("Set the daily hire rate for this tool (£ per day):","2");if(rate===null)return;try{await api("donations",{method:"PATCH",body:JSON.stringify({id,action:"approve",dailyRate:rate})});await loadCatalogue();await renderLiveDonations();alert("Approved and added to the shared catalogue.")}catch(e){alert(e.message||"Could not approve this tool.")}};
 window.rejectLiveDonation=async id=>{if(!confirm("Reject this submission?"))return;try{await api("donations",{method:"PATCH",body:JSON.stringify({id,action:"reject"})});await renderLiveDonations()}catch(e){alert(e.message||"Could not reject this submission.")}};
 async function findStaffBooking(ref,target){const box=byId(target);if(!box)return;try{const {bookings}=await api(`bookings?ref=${encodeURIComponent(ref)}`);const b=bookings[0];if(!b){box.textContent="Booking not found. Check the reference.";return;}const action=b.collectionStatus==="awaiting_collection"?"collect":b.collectionStatus==="collected"?"return":"";box.innerHTML=`<div class="card"><h3>${h(b.toolName)}</h3><p>Reference ${h(b.id)} · Member ${h(b.email)}</p><p>Collection ${h(b.start)} · Return ${h(b.end)} · Hire ${gbp(b.total)}</p><p>${h(b.collectionStatus)} · ${h(b.paymentStatus)}</p>${action?`<button id="staffRecordAction" class="btn">${action==="collect"?"Record collection and payment":"Record return"}</button>`:""}</div>`;if(action)byId("staffRecordAction").onclick=async()=>{try{await api("bookings",{method:"PATCH",body:JSON.stringify({id:b.id,action})});await findStaffBooking(b.id,target)}catch(e){box.insertAdjacentText("afterbegin",e.message)}}}catch(e){box.textContent=e.message||"Staff sign-in is required."}}
-async function showAdmin(){const user=await getUser();if(!staffUser(user)){window.show("account");statusText("Hall Admin is restricted to staff accounts. Sign in with an account assigned the admin role.",true);return;}const gate=byId("adminLoginBox");if(gate)gate.remove();const dash=byId("adminDashboard");if(dash)dash.remove();window.__toolshareOriginalShow?.("admin");const page=byId("admin");page.innerHTML=`<h2>Hall Admin</h2><p>Shared membership, payment, booking and donation records.</p><div class="grid"><div class="card"><h3 id="liveMembers">—</h3><p>Active members</p></div><div class="card"><h3 id="liveIncome">—</h3><p>Confirmed membership income</p></div><div class="card"><h3 id="liveForward">—</h3><p>Confirmed Pay It Forward</p></div><div class="card"><h3 id="liveOut">—</h3><p>Tools out</p></div></div>${catalogueImportMarkup}<div class="card"><h3>Pass-on tool submissions</h3><div id="donorAdminList">Loading…</div></div><div class="card"><h3>Collection and return</h3><input id="liveStaffRef" placeholder="Booking reference"><button id="liveStaffFind" class="btn">Find booking</button><div id="liveStaffResult"></div></div><button id="liveAdminSignOut" class="btn alt">Sign out</button>`;try{const {report:r}=await api("admin-data");byId("liveMembers").textContent=r.active_members||0;byId("liveIncome").textContent=gbp(r.membership_income);byId("liveForward").textContent=gbp(r.contributions);byId("liveOut").textContent=r.tools_out||0;await renderLiveDonations();await initCatalogueImport({api,onPublished:loadCatalogue})}catch(e){statusText(e.message||"Admin data could not be loaded.",true)}byId("liveStaffFind").onclick=()=>findStaffBooking(byId("liveStaffRef").value.trim(),"liveStaffResult");byId("liveAdminSignOut").onclick=async()=>{await logout();window.show("home")};if(byId("staffFindBooking"))byId("staffFindBooking").onclick=()=>findStaffBooking(byId("staffBookingRef")?.value.trim()||"","staffBookingResult");if(byId("staffFindReturn"))byId("staffFindReturn").onclick=()=>findStaffBooking(byId("staffReturnRef")?.value.trim()||"","staffReturnResult")}
+async function showAdmin(){const user=await getUser();if(!staffUser(user)){window.show("account");statusText("Hall Admin is restricted to staff accounts. Sign in with an account assigned the admin role.",true);return;}const gate=byId("adminLoginBox");if(gate)gate.remove();const dash=byId("adminDashboard");if(dash)dash.remove();window.__toolshareOriginalShow?.("admin");const page=byId("admin");page.innerHTML=`<h2>Hall Admin</h2><p>Shared membership, payment, booking and donation records.</p><div class="grid"><div class="card"><h3 id="liveMembers">—</h3><p>Active members</p></div><div class="card"><h3 id="liveIncome">—</h3><p>Confirmed membership income</p></div><div class="card"><h3 id="liveForward">—</h3><p>Confirmed Pay It Forward</p></div><div class="card"><h3 id="liveOut">—</h3><p>Tools out</p></div></div>${catalogueImportMarkup}<div class="card"><h3>Pass-on tool submissions</h3><div id="donorAdminList">Loading…</div></div><div class="card"><h3>Collection and return</h3><input id="liveStaffRef" placeholder="Booking reference"><button id="liveStaffFind" class="btn">Find booking</button><div id="liveStaffResult"></div></div><button id="liveAdminSignOut" class="btn alt">Sign out</button>`;try{const {report:r}=await api("admin-data");byId("liveMembers").textContent=r.active_members||0;byId("liveIncome").textContent=gbp(r.membership_income);byId("liveForward").textContent=gbp(r.contributions);byId("liveOut").textContent=r.tools_out||0;await renderLiveDonations();await initCatalogueImport({api,onPublished:loadCatalogue})}catch(e){statusText(e.message||"Admin data could not be loaded.",true)}byId("liveStaffFind").onclick=()=>findStaffBooking(byId("liveStaffRef").value.trim(),"liveStaffResult");byId("liveAdminSignOut").onclick=async()=>{await logout();renderMobileAccountBar(null);window.show("home")};if(byId("staffFindBooking"))byId("staffFindBooking").onclick=()=>findStaffBooking(byId("staffBookingRef")?.value.trim()||"","staffBookingResult");if(byId("staffFindReturn"))byId("staffFindReturn").onclick=()=>findStaffBooking(byId("staffReturnRef")?.value.trim()||"","staffReturnResult")}
 const savedShow=window.show;window.__toolshareOriginalShow=savedShow;window.show=async function(id){if(id==="admin"){await showAdmin();return}if(id==="borrow"){try{await loadCatalogue()}catch(e){alert(e.message||"The shared catalogue is temporarily unavailable.")}return savedShow.call(this,id)}savedShow.call(this,id);if(id==="loans")await renderLiveLoans();if(id==="account")try{await refreshMember()}catch{}};
 window.renderDonorAdmin=renderLiveDonations;window.renderLoans=renderLiveLoans;
 const savedBookingForm=window.showV14Booking;if(typeof savedBookingForm==="function")window.showV14Booking=async function(tool){try{const m=await api("my-membership");if(m.member?.membershipStatus!=="active"){alert("Sign in and complete your annual membership payment before booking tools.");window.show("account");return}await savedBookingForm.call(this,tool);const button=byId("v14Confirm");if(!button)return;button.onclick=async()=>{const start=byId("v14Start")?.value,end=byId("v14End")?.value;if(!start||!end||end<start){if(byId("v14Error"))byId("v14Error").textContent="Choose valid collection and return dates.";return}const suffix=Array.from(crypto.getRandomValues(new Uint8Array(5)),n=>(n%36).toString(36)).join("").toUpperCase(),id=`TS-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${suffix}`;button.disabled=true;try{const {booking:b}=await api("bookings",{method:"POST",body:JSON.stringify({id,toolId:tool.id,start,end})});const qr=encodeURIComponent(JSON.stringify({v:1,id:b.id,tool:b.toolName,start:b.start,end:b.end,total:b.total}));byId("toolList").innerHTML=`<div class="card"><h2>✅ Booking request created</h2><p><b>${h(b.toolName)}</b></p><p>Collection ${h(b.start)} · Return ${h(b.end)}</p><p>Hire ${gbp(b.total)} (${b.days} day${b.days===1?"":"s"})</p><p>Bring your booking confirmation and photo ID for your first collection.</p><div class="card"><h3>Toolshare Collection Pass</h3><b>${h(b.id)}</b><br><img width="220" height="220" alt="Booking QR code" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${qr}"><p>Hire payment: cash or card at collection.</p></div><button class="btn" onclick="show('loans')">View my bookings</button></div>`}catch(e){if(byId("v14Error"))byId("v14Error").textContent=e.message||"The booking could not be saved.";button.disabled=false}}}catch(e){alert(e.message||"Sign in and complete your membership before booking tools.");window.show("account")}};
-window.addEventListener("DOMContentLoaded",()=>{addDonorFields();byId("adminLoginBox")?.remove();byId("adminDashboard")?.remove();const b=[...document.querySelectorAll("button")].find(x=>x.textContent.trim()==="Admin");if(b)b.onclick=()=>window.show("admin");const loans=[...document.querySelectorAll("button")].find(x=>x.textContent.trim()==="My Loans");if(loans&&!byId("liveAccountNavButton")){const account=document.createElement("button");account.id="liveAccountNavButton";account.type="button";account.className=loans.className;account.textContent="My Account";account.onclick=()=>window.show("account");loans.after(account)}});
+window.addEventListener("DOMContentLoaded",()=>{installMobileAccountBar();addDonorFields();byId("adminLoginBox")?.remove();byId("adminDashboard")?.remove();const b=[...document.querySelectorAll("button")].find(x=>x.textContent.trim()==="Admin");if(b)b.onclick=()=>window.show("admin");const loans=[...document.querySelectorAll("button")].find(x=>x.textContent.trim()==="My Loans");if(loans&&!byId("liveAccountNavButton")){const account=document.createElement("button");account.id="liveAccountNavButton";account.type="button";account.className=loans.className;account.textContent="My Account";account.onclick=()=>window.show("account");loans.after(account)}});
 
