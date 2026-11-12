@@ -4,6 +4,12 @@ export default async (request, context) => {
   if (!contentType.includes("text/html")) return response;
 
   let html = await response.text();
+  const escapeBootstrap = "window.esc = window.esc || (value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;'));";
+  const firstScript = html.indexOf("<script>");
+  if (firstScript >= 0 && !html.includes("window.esc = window.esc ||")) {
+    const insertionPoint = firstScript + "<script>".length;
+    html = html.slice(0, insertionPoint) + escapeBootstrap + html.slice(insertionPoint);
+  }
 
   const publicCopy = [
     ["<title>Newbiggin Toolshare — Pilot</title>", "<title>Newbiggin Toolshare | Elizabethan Hall</title>"],
