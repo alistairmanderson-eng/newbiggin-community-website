@@ -47,6 +47,17 @@ export default async (request, context) => {
     }
   }
 
+  // Disable the legacy inline installer that repeatedly recreates the duplicate search panel.
+  const duplicateSearchScriptMarker = "// If the original catalogue re-renders, reinstall our search controls.";
+  const duplicateSearchScriptAt = html.indexOf(duplicateSearchScriptMarker);
+  if (duplicateSearchScriptAt >= 0) {
+    const duplicateScriptStart = html.lastIndexOf("<script>", duplicateSearchScriptAt);
+    const duplicateScriptEnd = html.indexOf("</script>", duplicateSearchScriptAt);
+    if (duplicateScriptStart >= 0 && duplicateScriptEnd >= 0) {
+      html = html.slice(0, duplicateScriptStart) + html.slice(duplicateScriptEnd + "</script>".length);
+    }
+  }
+
   html = html.replace(/<section id="admin" class="page">[\s\S]*?<\/section>/, '<section id="admin" class="page"><h2>Hall Admin</h2><p>Staff sign in is required to view shared member, payment and booking records.</p></section>');
   const legacyAdminMarker = "<!-- ADMIN DASHBOARD -->";
   const legacyAdminAt = html.indexOf(legacyAdminMarker);
