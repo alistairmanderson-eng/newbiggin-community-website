@@ -26,6 +26,27 @@ export default async (request, context) => {
   ];
   for (const [outdated, current] of publicCopy) html = html.replaceAll(outdated, current);
 
+  // Keep the original catalogue search and category filter; remove the duplicate v12 search panel.
+  const duplicateSearchOpening = /<div\\b(?=[^>]*\\bid=["']v12Search["'])[^>]*>/i.exec(html);
+  if (duplicateSearchOpening) {
+    const divTags = /<\\/?div\\b[^>]*>/gi;
+    divTags.lastIndex = duplicateSearchOpening.index;
+    let depth = 0;
+    let duplicateSearchEnd = -1;
+    let tag;
+    while ((tag = divTags.exec(html))) {
+      if (tag[0].startsWith("</")) depth -= 1;
+      else if (!tag[0].endsWith("/>")) depth += 1;
+      if (depth === 0) {
+        duplicateSearchEnd = divTags.lastIndex;
+        break;
+      }
+    }
+    if (duplicateSearchEnd > duplicateSearchOpening.index) {
+      html = html.slice(0, duplicateSearchOpening.index) + html.slice(duplicateSearchEnd);
+    }
+  }
+
   html = html.replace(/<section id="admin" class="page">[\s\S]*?<\/section>/, '<section id="admin" class="page"><h2>Hall Admin</h2><p>Staff sign in is required to view shared member, payment and booking records.</p></section>');
   const legacyAdminMarker = "<!-- ADMIN DASHBOARD -->";
   const legacyAdminAt = html.indexOf(legacyAdminMarker);
