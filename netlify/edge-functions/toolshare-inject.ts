@@ -20,7 +20,7 @@ export default async (request, context) => {
   ];
   for (const [outdated, current] of publicCopy) html = html.replaceAll(outdated, current);
 
-  html = html.replace(/<section id="admin" class="page">[\\s\\S]*?<\\/section>/, '<section id="admin" class="page"><h2>Hall Admin</h2><p>Staff sign in is required to view shared member, payment and booking records.</p></section>');
+  html = html.replace(/<section id="admin" class="page">[\s\S]*?<\/section>/, '<section id="admin" class="page"><h2>Hall Admin</h2><p>Staff sign in is required to view shared member, payment and booking records.</p></section>');
   const legacyAdminMarker = "<!-- ADMIN DASHBOARD -->";
   const legacyAdminAt = html.indexOf(legacyAdminMarker);
   if (legacyAdminAt >= 0) {
