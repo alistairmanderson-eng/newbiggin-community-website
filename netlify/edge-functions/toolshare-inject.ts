@@ -4,7 +4,7 @@ export default async (request, context) => {
   if (!contentType.includes("text/html")) return response;
 
   let html = await response.text();
-  const escapeBootstrap = "window.esc = window.esc || (value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\\"/g, '&quot;').replace(/'/g, '&#39;'));";
+  const escapeBootstrap = `window.esc = window.esc || (value => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"));`;
   const firstScript = html.indexOf("<script>");
   if (firstScript >= 0 && !html.includes("window.esc = window.esc ||")) {
     const insertionPoint = firstScript + "<script>".length;
