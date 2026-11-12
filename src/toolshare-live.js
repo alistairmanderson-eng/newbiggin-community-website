@@ -399,6 +399,8 @@ function renderLiveCatalogue() {
 async function loadCatalogue() {
   const { tools: list } = await api("catalogue");
   liveTools=list;
+  const count=byId("count");
+  if(count)count.textContent=String(list.length);
   if (Array.isArray(window.tools)) window.tools.splice(0, window.tools.length, ...list);
   localStorage.setItem("toolshareApprovedCatalogue", JSON.stringify(list.filter(x => x.type === "Community")));
   const search=byId("v12SearchInput"), category=byId("cat");
