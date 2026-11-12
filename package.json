@@ -8,10 +8,10 @@
   "dependencies": {
     "@netlify/database": "2.0.1",
     "@netlify/identity": "2.0.1",
-    "nodemailer": "7.0.10"
+    "nodemailer": "7.0.10",
+    "@netlify/blobs": "11.1.9"
   },
   "devDependencies": {
     "esbuild": "0.25.11"
   }
 }
-
