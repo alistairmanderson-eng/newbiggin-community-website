@@ -27,9 +27,9 @@ export default async (request, context) => {
   for (const [outdated, current] of publicCopy) html = html.replaceAll(outdated, current);
 
   // Keep the original catalogue search and category filter; remove the duplicate v12 search panel.
-  const duplicateSearchOpening = /<div\\b(?=[^>]*\\bid=["']v12Search["'])[^>]*>/i.exec(html);
+  const duplicateSearchOpening = /<div\b(?=[^>]*\bid=["']v12Search["'])[^>]*>/i.exec(html);
   if (duplicateSearchOpening) {
-    const divTags = /<\\/?div\\b[^>]*>/gi;
+    const divTags = /<\/?div\b[^>]*>/gi;
     divTags.lastIndex = duplicateSearchOpening.index;
     let depth = 0;
     let duplicateSearchEnd = -1;
