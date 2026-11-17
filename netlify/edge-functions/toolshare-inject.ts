@@ -75,7 +75,34 @@ export default async (request, context) => {
     html = html.replace("</body>", '<script defer src="/assets/toolshare-live.js"></script></body>');
   }
 
-  const cleanLandingHero = '<style id="toolshare-clean-hero">#home .hero{background:linear-gradient(135deg,#123d2b 0%,#246b49 100%)!important;background-color:#123d2b!important}#home .heroBox{background:rgba(0,0,0,.12)}</style>';
+  // Keep the original collage as a clean image area and move its text and call to action below it.
+  const divEnd = (source, start) => {
+    const tags = /<\/?div\b[^>]*>/gi;
+    tags.lastIndex = start;
+    let depth = 0;
+    let tag;
+    while ((tag = tags.exec(source))) {
+      if (tag[0].startsWith("</")) depth -= 1;
+      else if (!tag[0].endsWith("/>")) depth += 1;
+      if (depth === 0) return tags.lastIndex;
+    }
+    return -1;
+  };
+  const heroBoxMatch = /<div\b(?=[^>]*\bclass=["'][^"']*\bheroBox\b[^"']*["'])[^>]*>/i.exec(html);
+  if (heroBoxMatch) {
+    const heroBoxStart = heroBoxMatch.index;
+    const heroBoxEnd = divEnd(html, heroBoxStart);
+    if (heroBoxEnd > heroBoxStart) {
+      const heroBox = html.slice(heroBoxStart, heroBoxEnd);
+      html = html.slice(0, heroBoxStart) + html.slice(heroBoxEnd);
+      const heroMatch = /<div\b(?=[^>]*\bclass=["'][^"']*\bhero\b[^"']*["'])[^>]*>/i.exec(html);
+      if (heroMatch) {
+        const heroEnd = divEnd(html, heroMatch.index);
+        if (heroEnd > heroMatch.index) html = html.slice(0, heroEnd) + heroBox + html.slice(heroEnd);
+      }
+    }
+  }
+  const cleanLandingHero = '<style id="toolshare-clean-hero">#home .hero{height:280px!important;min-height:280px!important;display:block!important;background-color:#123d2b}#home .heroBox{width:min(100% - 44px,1080px)!important;max-width:1080px!important;margin:16px auto 24px!important;padding:24px!important;box-sizing:border-box!important;background:#fff!important;color:#173f2c!important;border:1px solid #e1e9e4!important;box-shadow:0 3px 12px rgba(0,0,0,.08)!important}#home .heroBox h1,#home .heroBox h2,#home .heroBox p,#home .heroBox strong{color:#173f2c!important}</style>';
   if (html.includes("</head>") && !html.includes('id="toolshare-clean-hero"')) {
     html = html.replace("</head>", cleanLandingHero + "</head>");
   }
