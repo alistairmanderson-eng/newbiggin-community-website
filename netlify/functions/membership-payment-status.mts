@@ -12,13 +12,16 @@ export default async (request) => {
     FROM toolshare_payments WHERE checkout_reference = ${reference} AND identity_user_id = ${String(user.id)} LIMIT 1
   `;
   if (!rows[0]) return json({ error: "Payment reference not found." }, 404);
-  if (rows[0].payment_status !== "paid") {
-    await verifyAndApplyPayment(rows[0].sumup_checkout_id, reference);
-  }
+
+  // Never trust a stored paid flag alone: verify this exact checkout with SumUp
+  // before the browser is allowed to display a paid confirmation.
+  const sumupConfirmed = await verifyAndApplyPayment(rows[0].sumup_checkout_id, reference);
+
   const updated = await db.sql`
     SELECT payment_status, email_status, contribution_amount, total_amount
     FROM toolshare_payments WHERE checkout_reference = ${reference} AND identity_user_id = ${String(user.id)} LIMIT 1
   `;
-  return json({ status: updated[0]?.payment_status || "pending", emailStatus: updated[0]?.email_status || "not_sent", total: Number(updated[0]?.total_amount || 0) });
+  const confirmed = sumupConfirmed && updated[0]?.payment_status === "paid";
+  const status = confirmed ? "paid" : updated[0]?.payment_status === "failed" ? "failed" : "pending";
+  return json({ status, emailStatus: confirmed ? updated[0]?.email_status || "not_sent" : "not_sent", total: Number(updated[0]?.total_amount || 0) });
 };
-
