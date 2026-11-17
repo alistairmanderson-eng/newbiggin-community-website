@@ -7,13 +7,7 @@ const money = (value, label, max = 100000) => {
   if (!Number.isFinite(amount) || amount < 0 || amount > max) throw new Error(`${label} must be a number from £0 to £${max}.`);
   return Math.round(amount * 100) / 100;
 };
-const normaliseType = (value, fallback) => {
-  const kind = clean(value, 40).toLowerCase().replace(/[–—]/g, "-");
-  if (!kind) return fallback;
-  if (["hall", "elizabethan hall", "hall tool"].includes(kind)) return "Hall";
-  if (["community", "pass-on", "pass on", "donated", "community tool"].includes(kind)) return "Community";
-  return null;
-};
+const normaliseType = () => "Hall";
 const basename = (value) => clean(value, 500).replace(/^['"]|['"]$/g, "").split(/[\\/]/).pop().slice(0, 180);
 
 export default async (request) => {
@@ -41,9 +35,9 @@ export default async (request) => {
     let body;
     try { body = await request.json(); } catch { return json({ error: "Choose a valid Excel workbook and try again." }, 400); }
     const rows = body?.rows;
-    const fallbackType = normaliseType(body?.toolType, "");
-    if (!Array.isArray(rows) || !rows.length || rows.length > 500 || !["Hall", "Community"].includes(fallbackType)) {
-      return json({ error: "Choose Hall or Pass-On as the default ownership and import between 1 and 500 tools at a time." }, 400);
+    const fallbackType = "Hall";
+    if (!Array.isArray(rows) || !rows.length || rows.length > 500) {
+      return json({ error: "Import between 1 and 500 tools at a time." }, 400);
     }
 
     const prepared = [];
@@ -55,7 +49,7 @@ export default async (request) => {
         const dailyRate = money(row.dailyRate, `Row ${index + 1} daily hire charge`, 1000);
         if (!name || !category || dailyRate === null) throw new Error(`Row ${index + 1}: tool name, category and daily hire charge are needed.`);
         const type = normaliseType(row.type, fallbackType);
-        if (!type) throw new Error(`Row ${index + 1}: ownership must be Hall or Community / Pass-On.`);
+        if (!type) throw new Error(`Row ${index + 1}: the tool could not be listed as Elizabethan Hall property.`);
         const weeklyRate = money(row.weeklyRate, `Row ${index + 1} weekly hire charge`, 10000);
         const replacementValue = money(row.replacementValue, `Row ${index + 1} replacement value`, 100000) ?? 0;
         prepared.push({

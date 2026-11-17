@@ -43,7 +43,7 @@ function parseSheet(XLSX, file) {
       rowNumber: headerIndex + offset + 2,
       name: String(read(row, "tool name", "name")).trim(),
       category: String(read(row, "category")).trim(),
-      type: String(read(row, "ownership", "tool type", "type")).trim(),
+      type: "Hall",
       condition: String(read(row, "condition", "tool condition")).trim(),
       description: String(read(row, "description included parts", "description", "included parts")).trim(),
       suitableUses: String(read(row, "suitable uses", "uses")).trim(),
@@ -74,7 +74,7 @@ export const catalogueImportMarkup = `
     <p>Choose your completed Excel workbook. Tool name, category and daily charge are needed. Weekly charge and the other details can be left blank. IDs are generated automatically.</p>
     <p class="muted">We read the workbook in your browser. Import sends the tool details to the shared catalogue as drafts. Photos are not uploaded; photo filenames are kept only as references. Drafts are not shown to members until staff review and publish them.</p>
     <div style="display:grid;gap:10px;max-width:620px">
-      <label>Default ownership for rows without an Ownership column<br><select id="catalogueImportType" required><option value="">Choose Hall or Pass-On</option><option value="Hall">Hall tools</option><option value="Community">Pass-On / community tools</option></select></label>
+      <p><b>All catalogue tools belong to Elizabethan Hall.</b> If a donated tool is accepted, it becomes Hall property.</p>
       <label>Excel workbook (.xlsx or .xls)<br><input id="catalogueImportFile" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"></label>
       <button type="button" class="btn" id="cataloguePreviewButton">Preview workbook</button>
     </div>
@@ -87,7 +87,6 @@ export async function initCatalogueImport({ api, onPublished }) {
   const status = document.getElementById("catalogueImportStatus");
   const preview = document.getElementById("catalogueImportPreview");
   const fileInput = document.getElementById("catalogueImportFile");
-  const typeInput = document.getElementById("catalogueImportType");
   const button = document.getElementById("cataloguePreviewButton");
   let parsed = null;
   const setStatus = (message, error = false) => { status.textContent = message; status.style.color = error ? "#a00" : "#17442f"; };
@@ -97,7 +96,7 @@ export async function initCatalogueImport({ api, onPublished }) {
     try {
       const { drafts } = await api("catalogue-import");
       box.innerHTML = drafts.length ? drafts.map((draft) => `<div class="card" data-draft-id="${h(draft.id)}">
-        <h4>${h(draft.name)} <span class="tag">${h(draft.type === "Community" ? "Pass-On" : "Hall")}</span></h4>
+        <h4>${h(draft.name)} <span class="tag">Elizabethan Hall property</span></h4>
         <p>${h(draft.category)} · £${Number(draft.dailyRate).toFixed(2)}/day${draft.weeklyRate === null ? "" : ` · £${Number(draft.weeklyRate).toFixed(2)}/week`}</p>
         ${draft.description ? `<p>${h(draft.description)}</p>` : ""}${draft.suitableUses ? `<p><b>Suitable uses:</b> ${h(draft.suitableUses)}</p>` : ""}${draft.additionalItems ? `<p><b>Additional items:</b> ${h(draft.additionalItems)}</p>` : ""}
         ${draft.photoFilename ? `<p><b>Photo reference:</b> ${h(draft.photoFilename)}</p>` : ""}
@@ -127,7 +126,6 @@ export async function initCatalogueImport({ api, onPublished }) {
     const file = fileInput.files?.[0];
     if (!file) { setStatus("Choose your Excel workbook first.", true); return; }
     if (file.size > 10 * 1024 * 1024) { setStatus("Choose a workbook smaller than 10 MB.", true); return; }
-    if (!typeInput.value) { setStatus("Choose a default ownership for rows without an Ownership column.", true); return; }
     button.disabled = true; preview.innerHTML = ""; parsed = null;
     try {
       const XLSX = await loadXlsx();
@@ -143,7 +141,7 @@ export async function initCatalogueImport({ api, onPublished }) {
         const importButton = event.currentTarget;
         importButton.disabled = true;
         try {
-          const result = await api("catalogue-import", { method: "POST", body: JSON.stringify({ filename: file.name, toolType: typeInput.value, rows: parsed.rows }) });
+          const result = await api("catalogue-import", { method: "POST", body: JSON.stringify({ filename: file.name, toolType: "Hall", rows: parsed.rows }) });
           setStatus(result.message);
           preview.innerHTML = ""; fileInput.value = ""; parsed = null;
           await renderDrafts();
