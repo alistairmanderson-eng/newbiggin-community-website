@@ -41,7 +41,7 @@ export default async (request) => {
         ${category}, ${description}, ${condition}, ${safety}, ${value}, ${handover}, ${date},
         TRUE, TRUE, TRUE)
     `;
-    return json({ id, message: "Your pass-on tool submission has been sent to Elizabethan Hall for review." }, 201);
+    return json({ id, message: "Your tool donation offer has been sent to Elizabethan Hall for review. If accepted, it becomes Hall property." }, 201);
   }
 
   const user = await requireUser();
@@ -69,14 +69,14 @@ export default async (request) => {
       const weeklyRate = body.weeklyRate === "" || body.weeklyRate === null || body.weeklyRate === undefined ? null : Number(body.weeklyRate);
       if (weeklyRate !== null && (!Number.isFinite(weeklyRate) || weeklyRate < 0 || weeklyRate > 1000)) return json({ error: "Enter a valid weekly hire rate, or leave it blank." }, 400);
       if (!Number.isFinite(rate) || rate < 0 || rate > 100) return json({ error: "Enter a valid daily hire rate." }, 400);
-      const toolId = `community-${donation.id}`;
+      const toolId = `hall-donation-${donation.id}`;
       await db.sql`
         INSERT INTO toolshare_catalogue
           (tool_id, tool_type, submission_id, name, category, daily_rate, weekly_rate, replacement_value,
            condition, description, safety_requirements)
-        VALUES (${toolId}, 'Community', ${donation.id}, ${donation.tool_name}, ${donation.category},
+        VALUES (${toolId}, 'Hall', ${donation.id}, ${donation.tool_name}, ${donation.category},
           ${rate}, ${weeklyRate}, ${donation.estimated_value}, ${donation.condition}, ${donation.description}, ${donation.safety_requirements})
-        ON CONFLICT (submission_id) DO UPDATE SET active=TRUE
+        ON CONFLICT (submission_id) DO UPDATE SET active=TRUE, tool_type='Hall'
       `;
       await db.sql`UPDATE toolshare_donations SET status='approved', reviewed_at=NOW(), reviewed_by=${String(user.id)} WHERE id=${id}`;
       return json({ status: "approved", toolId, donorEmail: donation.donor_email });
