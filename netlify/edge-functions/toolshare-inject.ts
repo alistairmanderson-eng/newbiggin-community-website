@@ -113,6 +113,54 @@ export default async (request, context) => {
     html = html.replace("</head>", cleanLandingHero + "</head>");
   }
 
+
+  const posterPanelEnhancement = `<script>(function(){
+    if(document.getElementById('toolshare-poster-panel-details'))return;
+    var panels=[
+      {label:'Save Money',title:'Save money by borrowing',text:'Borrow tools for the jobs you need to do instead of buying equipment you may rarely use. Each tool has its own daily hire charge.'},
+      {label:'Reduce Landfill',title:'Keep useful tools in use',text:'Sharing tools means fewer duplicate purchases and keeps usable equipment in use for longer, helping reduce waste.'},
+      {label:'Build Skills',title:'Build practical skills',text:'Use the right tools for DIY and gardening jobs. Elizabethan Hall also offers local courses and practical support.'},
+      {label:'Support Our Hall',title:'Support Toolshare and the Hall',text:'Daily hire charges help fund Toolshare, care for equipment, replace worn or unsafe tools, and support Elizabethan Hall.'}
+    ];
+    var hero=document.querySelector('#home .hero');
+    if(!hero)return;
+    hero.style.setProperty('position','relative','important');
+    var dialog=document.createElement('dialog');
+    dialog.className='poster-info-dialog';
+    dialog.setAttribute('aria-labelledby','poster-info-title');
+    dialog.innerHTML='<div class="poster-info-content"><button type="button" class="poster-info-close" aria-label="Close information">×</button><h2 id="poster-info-title"></h2><p class="poster-info-text"></p></div>';
+    document.body.appendChild(dialog);
+    var close=dialog.querySelector('.poster-info-close');
+    var title=dialog.querySelector('#poster-info-title');
+    var body=dialog.querySelector('.poster-info-text');
+    var opener=null;
+    panels.forEach(function(item,index){
+      var button=document.createElement('button');
+      button.type='button';
+      button.className='poster-info-hotspot poster-info-hotspot-'+(index+1);
+      button.setAttribute('aria-label','More about '+item.label);
+      button.title='More about '+item.label;
+      button.addEventListener('click',function(){
+        opener=button;
+        title.textContent=item.title;
+        body.textContent=item.text;
+        dialog.showModal();
+        close.focus();
+      });
+      hero.appendChild(button);
+    });
+    close.addEventListener('click',function(){dialog.close();});
+    dialog.addEventListener('click',function(event){if(event.target===dialog)dialog.close();});
+    dialog.addEventListener('close',function(){if(opener)opener.focus();});
+    var style=document.createElement('style');
+    style.id='toolshare-poster-panel-details';
+    style.textContent='.poster-info-hotspot{position:absolute;top:47.7%;height:13.7%;padding:0;border:0;background:transparent;cursor:pointer;z-index:5}.poster-info-hotspot-1{left:.8%;width:16.1%}.poster-info-hotspot-2{left:17.3%;width:16.2%}.poster-info-hotspot-3{left:33.9%;width:16.3%}.poster-info-hotspot-4{left:50.7%;width:16.5%}.poster-info-hotspot:after{content:"i";position:absolute;right:7px;bottom:7px;width:22px;height:22px;border-radius:50%;background:#176b48;color:#fff;font:bold 15px/22px Arial,sans-serif;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.3)}.poster-info-hotspot:hover,.poster-info-hotspot:focus-visible{outline:3px solid #176b48;outline-offset:-3px;background:rgba(255,255,255,.08)}.poster-info-hotspot:focus-visible{outline-style:solid}.poster-info-dialog{width:min(92vw,480px);max-width:480px;border:0;border-radius:18px;padding:0;box-shadow:0 18px 60px rgba(0,0,0,.35);color:#173f2c}.poster-info-dialog::backdrop{background:rgba(10,28,19,.62)}.poster-info-content{position:relative;padding:30px 26px 26px}.poster-info-content h2{margin:0 42px 14px 0;color:#173f2c;font-size:1.5rem}.poster-info-content p{margin:0;line-height:1.55;color:#294b39}.poster-info-close{position:absolute;right:12px;top:10px;border:0;border-radius:50%;width:40px;height:40px;background:#e8f2ec;color:#173f2c;font-size:27px;cursor:pointer}';
+    document.head.appendChild(style);
+  })();</script>`;
+  if(html.includes('</body>')&&!html.includes('toolshare-poster-panel-details')){
+    html=html.replace('</body>',posterPanelEnhancement+'</body>');
+  }
+
   const headers = new Headers(response.headers);
   headers.set("Cache-Control", "private, no-store");
   headers.delete("Content-Length");
