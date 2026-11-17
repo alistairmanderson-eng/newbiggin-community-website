@@ -75,6 +75,11 @@ export default async (request, context) => {
     html = html.replace("</body>", '<script defer src="/assets/toolshare-live.js"></script></body>');
   }
 
+  const cleanLandingHero = '<style id="toolshare-clean-hero">#home .hero{background:linear-gradient(135deg,#123d2b 0%,#246b49 100%)!important;background-color:#123d2b!important}#home .heroBox{background:rgba(0,0,0,.12)}</style>';
+  if (html.includes("</head>") && !html.includes('id="toolshare-clean-hero"')) {
+    html = html.replace("</head>", cleanLandingHero + "</head>");
+  }
+
   const headers = new Headers(response.headers);
   headers.set("Cache-Control", "private, no-store");
   headers.delete("Content-Length");
