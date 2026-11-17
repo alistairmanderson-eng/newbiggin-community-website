@@ -24,6 +24,7 @@ nav button{background:#285d45;color:#fff}.btn{background:#176b43;color:#fff}.btn
 .ts-pass-qr{width:180px;height:180px;max-width:70vw;background:#fff;padding:8px;border-radius:8px}
 .ts-scan-box{margin-top:14px;padding:16px;border:1px solid #ccc;border-radius:12px}
 </style>
+<style id="toolshare-clean-hero">#home .hero{display:block;width:min(100%,720px);max-width:720px;aspect-ratio:1214/1295;height:auto;min-height:0;padding:0;margin:0 auto 18px;background-color:#e8efe9;background-image:url("/toolshare-hero-v4.png?v=20261117-1815");background-size:100% 100%;background-repeat:no-repeat;background-position:center;box-sizing:border-box}#home .heroBox{display:block;width:min(calc(100% - 32px),900px);max-width:900px;margin:16px auto 24px;padding:24px;box-sizing:border-box;background:#fff;color:#173f2c;border:1px solid #e1e9e4;border-radius:16px;box-shadow:0 3px 12px rgba(0,0,0,.08)}#home .heroBox h1,#home .heroBox h2,#home .heroBox p,#home .heroBox strong{color:#173f2c}#home .heroBox h1{font-size:clamp(1.5rem,2.3vw,1.9rem);line-height:1.12;margin-bottom:10px}#toolshareHeroActions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}#toolshareHeroActions button{flex:1 1 190px;min-height:48px;padding:12px 16px;font-weight:700}#toolshareHeroActions button:last-child{background:#e97812;color:#fff}@media(max-width:600px){#home .hero{width:100%;margin:0 auto 12px}#home .heroBox{width:calc(100% - 20px);padding:18px;margin:10px auto 18px}#home .heroBox h1{font-size:clamp(1.45rem,7vw,1.7rem)}#toolshareHeroActions{display:grid;grid-template-columns:1fr;gap:8px}#toolshareHeroActions button{width:100%;min-height:48px}}</style>
 </head>
 <body>
 
@@ -35,10 +36,11 @@ nav button{background:#285d45;color:#fff}.btn{background:#176b43;color:#fff}.btn
 <button onclick="show('home')">Home</button><button onclick="show('borrow')">Borrow</button><button onclick="show('lend')">Donate a Tool</button><button onclick="show('loans')">My Loans</button><button onclick="show('join')">Join Toolshare</button><button onclick="show('visit')">Collect / Return</button><button onclick="show('terms')">Terms</button><button onclick="show('admin')">Hall Admin</button></nav>
 
 <section id="home" class="page active">
-<div class="hero"><div class="heroBox"><div class="strap">NEWBIGGIN TOOLSHARE</div><h1>DON’T BUY IT.<br>SHARE IT.</h1>
-<p>Borrow the tools you need. Share the tools you don't. Save money, reduce waste, build skills and support Newbiggin.</p>
-<p><b>Powered by Elizabethan Hall and local people.</b></p>
-<button class="btn" onclick="show('borrow')">BROWSE THE TOOLS</button></div></div>
+<div class="hero" role="img" aria-label="A selection of DIY and gardening tools in a wooden toolbox at a bright workshop"></div>
+<div class="heroBox"><div class="strap">ELIZABETHAN HALL TOOLSHARE</div><h1>DON’T BUY IT.<br>SHARE IT.</h1>
+<p>Borrow tools from Elizabethan Hall. Donate suitable tools to the Hall; if accepted, they become Hall property.</p>
+<p><b>Operated by Elizabethan Hall.</b></p>
+<div id="toolshareHeroActions" aria-label="Toolshare shortcuts"><button class="btn" type="button" onclick="show('borrow')">BROWSE THE TOOLS</button><button class="btn" type="button" onclick="show('lend')">SHARE YOUR TOOLS</button><button class="btn" type="button" onclick="show('join')">GET STARTED TODAY</button></div></div>
 <div class="grid" style="margin-top:18px">
 <div class="card"><h3>🏛️ Hall Tool</h3><p>Elizabethan Hall is putting its own equipment into the catalogue from day one.</p></div>
 <div class="card"><h3>💚 Pass-On Tool</h3><p>Your unused tools can help a neighbour complete a job without buying something they'll rarely use.</p></div>
