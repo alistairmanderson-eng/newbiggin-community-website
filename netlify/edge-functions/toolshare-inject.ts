@@ -36,6 +36,7 @@ export default async (request, context) => {
     ["reimburse the donor at the replacement value recorded in the Toolshare terms", "reimburse Elizabethan Hall at the replacement value recorded for the tool"],
     ["reimburse the donor", "reimburse Elizabethan Hall"],
     ["donor's stated value", "Hall's recorded replacement value"],
+    ["If you are unsure how to use a tool safely, please ask before using it.", "Please only use a tool if you know how to operate it safely."],
   ];
   for (const [outdated, current] of publicCopy) html = html.replaceAll(outdated, current);
 
