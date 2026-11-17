@@ -162,12 +162,34 @@ export default async (request, context) => {
       });
       hero.appendChild(button);
     });
+    var ctas=[
+      {label:'Browse the tools',page:'borrow',left:'15%',top:'72.7%',width:'19.5%',height:'6.2%'},
+      {label:'Share your tools',page:'lend',left:'64.2%',top:'75.5%',width:'20.5%',height:'6.4%'},
+      {label:'Get started today',page:'join',left:'78.1%',top:'93.2%',width:'21.5%',height:'6.2%'}
+    ];
+    ctas.forEach(function(item){
+      var link=document.createElement('a');
+      link.href='#'+item.page;
+      link.className='poster-cta-hotspot';
+      link.setAttribute('aria-label',item.label);
+      link.title=item.label;
+      link.style.left=item.left;
+      link.style.top=item.top;
+      link.style.width=item.width;
+      link.style.height=item.height;
+      link.addEventListener('click',function(event){
+        event.preventDefault();
+        if(typeof window.show==='function')window.show(item.page);
+        else{var target=document.getElementById(item.page);if(target)target.scrollIntoView({behavior:'smooth'});}
+      });
+      hero.appendChild(link);
+    });
     close.addEventListener('click',function(){dialog.close();});
     dialog.addEventListener('click',function(event){if(event.target===dialog)dialog.close();});
     dialog.addEventListener('close',function(){if(opener)opener.focus();});
     var style=document.createElement('style');
     style.id='toolshare-poster-panel-details';
-    style.textContent='.poster-info-hotspot{position:absolute;top:47.7%;height:13.7%;padding:0;border:0;background:transparent;cursor:pointer;z-index:5}.poster-info-hotspot-1{left:.8%;width:16.1%}.poster-info-hotspot-2{left:17.3%;width:16.2%}.poster-info-hotspot-3{left:33.9%;width:16.3%}.poster-info-hotspot-4{left:50.7%;width:16.5%}.poster-info-hotspot:after{content:"i";position:absolute;right:7px;bottom:7px;width:22px;height:22px;border-radius:50%;background:#176b48;color:#fff;font:bold 15px/22px Arial,sans-serif;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.3)}.poster-info-hotspot:hover,.poster-info-hotspot:focus-visible{outline:3px solid #176b48;outline-offset:-3px;background:rgba(255,255,255,.08)}.poster-info-hotspot:focus-visible{outline-style:solid}.poster-info-dialog{width:min(92vw,480px);max-width:480px;border:0;border-radius:18px;padding:0;box-shadow:0 18px 60px rgba(0,0,0,.35);color:#173f2c}.poster-info-dialog::backdrop{background:rgba(10,28,19,.62)}.poster-info-content{position:relative;padding:30px 26px 26px}.poster-info-content h2{margin:0 42px 14px 0;color:#173f2c;font-size:1.5rem}.poster-info-content p{margin:0;line-height:1.55;color:#294b39}.poster-info-close{position:absolute;right:12px;top:10px;border:0;border-radius:50%;width:40px;height:40px;background:#e8f2ec;color:#173f2c;font-size:27px;cursor:pointer}';
+    style.textContent='.poster-info-hotspot{position:absolute;top:47.7%;height:13.7%;padding:0;border:0;background:transparent;cursor:pointer;z-index:5}.poster-cta-hotspot{position:absolute;display:block;z-index:6;opacity:0;background:transparent;border:0;cursor:pointer}.poster-cta-hotspot:hover{opacity:.12;background:#fff}.poster-cta-hotspot:focus-visible{opacity:.25;background:#fff;outline:3px solid #176b48;outline-offset:-3px}.poster-info-hotspot-1{left:.8%;width:16.1%}.poster-info-hotspot-2{left:17.3%;width:16.2%}.poster-info-hotspot-3{left:33.9%;width:16.3%}.poster-info-hotspot-4{left:50.7%;width:16.5%}.poster-info-hotspot:after{content:"i";position:absolute;right:7px;bottom:7px;width:22px;height:22px;border-radius:50%;background:#176b48;color:#fff;font:bold 15px/22px Arial,sans-serif;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.3)}.poster-info-hotspot:hover,.poster-info-hotspot:focus-visible{outline:3px solid #176b48;outline-offset:-3px;background:rgba(255,255,255,.08)}.poster-info-hotspot:focus-visible{outline-style:solid}.poster-info-dialog{width:min(92vw,480px);max-width:480px;border:0;border-radius:18px;padding:0;box-shadow:0 18px 60px rgba(0,0,0,.35);color:#173f2c}.poster-info-dialog::backdrop{background:rgba(10,28,19,.62)}.poster-info-content{position:relative;padding:30px 26px 26px}.poster-info-content h2{margin:0 42px 14px 0;color:#173f2c;font-size:1.5rem}.poster-info-content p{margin:0;line-height:1.55;color:#294b39}.poster-info-close{position:absolute;right:12px;top:10px;border:0;border-radius:50%;width:40px;height:40px;background:#e8f2ec;color:#173f2c;font-size:27px;cursor:pointer}';
     document.head.appendChild(style);
   })();</script>`;
   if(html.includes('</body>')&&!html.includes('toolshare-poster-panel-details')){
