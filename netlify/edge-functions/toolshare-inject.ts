@@ -102,7 +102,7 @@ export default async (request, context) => {
       }
     }
   }
-  const cleanLandingHero = '<style id="toolshare-clean-hero">#home .hero{height:280px!important;min-height:280px!important;display:block!important;background-color:#123d2b}#home .heroBox{width:min(100% - 44px,1080px)!important;max-width:1080px!important;margin:16px auto 24px!important;padding:24px!important;box-sizing:border-box!important;background:#fff!important;color:#173f2c!important;border:1px solid #e1e9e4!important;box-shadow:0 3px 12px rgba(0,0,0,.08)!important}#home .heroBox h1,#home .heroBox h2,#home .heroBox p,#home .heroBox strong{color:#173f2c!important}</style>';
+  const cleanLandingHero = '<style id="toolshare-clean-hero">#home .hero{height:280px!important;min-height:280px!important;display:block!important;background-color:#123d2b}#home .heroBox{width:min(100% - 44px,1080px)!important;max-width:1080px!important;margin:16px auto 24px!important;padding:24px!important;box-sizing:border-box!important;background:#fff!important;color:#173f2c!important;border:1px solid #e1e9e4!important;box-shadow:0 3px 12px rgba(0,0,0,.08)!important}#home .heroBox h1,#home .heroBox h2,#home .heroBox p,#home .heroBox strong{color:#173f2c!important}#home .heroBox h1{font-size:clamp(2rem,4vw,3rem)!important;line-height:1.08!important}@media(max-width:600px){#home .heroBox h1{font-size:clamp(1.7rem,8vw,2.25rem)!important}}</style>';
   if (html.includes("</head>") && !html.includes('id="toolshare-clean-hero"')) {
     html = html.replace("</head>", cleanLandingHero + "</head>");
   }
