@@ -37,6 +37,8 @@ export default async (request, context) => {
     ["reimburse the donor", "reimburse Elizabethan Hall"],
     ["donor's stated value", "Hall's recorded replacement value"],
     ["If you are unsure how to use a tool safely, please ask before using it.", "Please only use a tool if you know how to operate it safely."],
+    ["Safety information and any experience requirements shown for a tool must be followed.", "Please only use a tool if you know how to operate it safely."],
+    ["For community-owned tools, the donor remains the owner of the item.", "If Elizabethan Hall accepts a tool donation, it becomes Elizabethan Hall property."],
   ];
   for (const [outdated, current] of publicCopy) html = html.replaceAll(outdated, current);
 
